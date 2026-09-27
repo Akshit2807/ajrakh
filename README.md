@@ -10,6 +10,6 @@ Live site: https://akshit2807.github.io/ajrakh/
 | [`/indigo`](https://akshit2807.github.io/ajrakh/indigo/) | The same deck in the original indigo-and-cotton design |
 | [`/moodboard`](https://akshit2807.github.io/ajrakh/moodboard/) | Visual boards with a hands-on block-printing table |
 
-In the decks, use the arrow keys or swipe to move between slides, and press F for full screen.
+In the decks, scroll, swipe or use the arrow keys to move between slides, and press F for full screen.
 
 Photographs come from Wikimedia Commons (under their stated licences), the V&A, D'Source (IIT Bombay), Gaatha and Khamir. Each is credited on the page where it appears and is used for non-commercial educational reference.

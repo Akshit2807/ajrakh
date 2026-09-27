@@ -39,7 +39,9 @@
   a:focus-visible, button:focus-visible { outline: 3px solid var(--harda); outline-offset: 3px; }
 
   /* ---------- Deck engine ---------- */
-  #stage { position: absolute; left: 50%; top: 0; width: 1600px; height: 900px; transform-origin: top center; transform: translateX(-50%) scale(var(--s, .5)); box-shadow: 0 30px 90px rgba(0,0,0,.55); overflow: hidden; }
+  /* The frame clips the 1600px stage so phones never treat the page as wider than the screen */
+  #frame { position: fixed; inset: 0; overflow: hidden; }
+  #stage { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; transform: translate(var(--x, 0px), var(--y, 0px)) scale(var(--s, .5)); box-shadow: 0 30px 90px rgba(0,0,0,.55); overflow: hidden; }
   .slide { position: absolute; inset: 0; overflow: hidden; visibility: hidden; opacity: 0; contain: layout paint; backface-visibility: hidden;
     transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), visibility 0s linear .9s; }
   .slide.active { visibility: visible; opacity: 1; z-index: 2; transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), visibility 0s; }
@@ -51,6 +53,9 @@
   #prog i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #C9432F 0 10px, #F6F0E2 10px 12px, #2A3A86 12px 22px, #F6F0E2 22px 24px); transition: width .4s ease; }
   #hint { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; z-index: 6; pointer-events: none; font: 500 12px/1 "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; color: #F6F0E2; background: rgba(20,15,12,.78); padding: 11px 18px; border-radius: 999px; transition: opacity .6s ease; }
   #hint.gone { opacity: 0; }
+  #rotate { display: none; position: fixed; left: 50%; top: calc(18px + env(safe-area-inset-top, 0px)); translate: -50% 0; z-index: 6; pointer-events: none; font: 500 11.5px/1 "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: #F6F0E2; background: rgba(162,41,28,.9); padding: 11px 16px; border-radius: 999px; transition: opacity .6s ease; }
+  #rotate.gone { opacity: 0; }
+  @media (orientation: portrait) and (pointer: coarse) { #rotate { display: block; } }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   /* ---------- Two sides of the cloth ---------- */
@@ -364,6 +369,7 @@
   </defs>
 </svg>
 
+<div id="frame">
 <div id="stage" role="region" aria-roledescription="slide deck" aria-label="Ajrakh presentation">
 
 <!-- 01 TITLE -->
@@ -984,7 +990,9 @@
 
 </div>
 
+</div>
 <div id="prog" aria-hidden="true"><i></i></div>
+<div id="rotate" aria-hidden="true">Turn your phone sideways for full view</div>
 <div id="hint" aria-hidden="true">← → · scroll · swipe · F full screen</div>
 <span id="count" class="sr-only" aria-live="polite">01 / 22</span>
 
@@ -1094,13 +1102,14 @@ const IMG = {
   const slides = [...document.querySelectorAll('.slide')];
   const N = slides.length, pad = n => String(n).padStart(2, '0');
   slides.forEach((s, i) => { const p = s.querySelector('.pg'); if (p) p.textContent = `${pad(i + 1)} / ${N}`; });
-  const stage = document.getElementById('stage'), count = document.getElementById('count'), bar = document.querySelector('#prog i');
+  const frame = document.getElementById('frame'), stage = document.getElementById('stage'), count = document.getElementById('count'), bar = document.querySelector('#prog i');
   let cur = 0;
   const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   function fit() {
-    const s = Math.min(innerWidth / 1600, innerHeight / 900);
+    const W = frame.clientWidth, H = frame.clientHeight, s = Math.min(W / 1600, H / 900);
     stage.style.setProperty('--s', s);
-    stage.style.top = Math.max(0, (innerHeight - 900 * s) / 2) + 'px';
+    stage.style.setProperty('--x', (W - 1600 * s) / 2 + 'px');
+    stage.style.setProperty('--y', (H - 900 * s) / 2 + 'px');
   }
   const EASE_MS = 900;
   // Decode the photos on nearby slides ahead of time so nothing pops in during a transition.
@@ -1135,6 +1144,7 @@ const IMG = {
   }
   const hint = document.getElementById('hint');
   let hintTimer = setTimeout(() => hint.classList.add('gone'), 3500);
+  setTimeout(() => document.getElementById('rotate').classList.add('gone'), 4500);
   const move = i => { if (i !== cur) { hint.classList.add('gone'); clearTimeout(hintTimer); } go(i); };
   const toggleFs = () => {
     const d = document;
@@ -1150,8 +1160,8 @@ const IMG = {
     else if (k === 'f' || k === 'F') toggleFs();
   });
   let tx = null, ty = null;
-  stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
-  stage.addEventListener('touchend', e => {
+  frame.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  frame.addEventListener('touchend', e => {
     if (tx === null) return;
     const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) move(cur + (dx < 0 ? 1 : -1));

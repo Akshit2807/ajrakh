@@ -1,0 +1,1151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ajrakh Deck, Original Design</title>
+<meta name="description" content="Ajrakh, a study of craft, community and continuity by Prisha Palney.">
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Barlow+Condensed:wght@500;600;700&family=Noto+Naskh+Arabic:wght@600&family=Noto+Serif+Gujarati:wght@600&family=Noto+Serif+Devanagari:wght@600&display=swap">
+<style>
+  /* Palette = the four ajrakh colours plus harda (myrobalan) yellow and unbleached cotton */
+  :root {
+    color-scheme: light;
+    --cotton: #EEE6D5;
+    --cotton-2: #E3D7BF;
+    --ink: #231A14;
+    --ink-soft: #5B4A3C;
+    --indigo: #16225C;
+    --indigo-2: #0E1640;
+    --indigo-3: #2A3A86;
+    --madder: #A2291C;
+    --madder-2: #C9432F;
+    --iron: #1C1714;
+    --harda: #C8962B;
+    --resist: #F6F0E2;
+    --line-c: rgba(35, 26, 20, .18);
+    --line-i: rgba(246, 240, 226, .2);
+    --display: "Gloock", "Georgia", serif;
+    --body: "Newsreader", "Georgia", serif;
+    --label: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: #07091A; overflow: hidden; font: 400 22px/1.45 var(--body); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--harda); outline-offset: 3px; }
+
+  /* ---------- Deck engine ---------- */
+  #stage { position: absolute; left: 50%; top: 0; width: 1600px; height: 900px; transform-origin: top center; transform: translateX(-50%) scale(var(--s, .5)); box-shadow: 0 30px 90px rgba(0,0,0,.55); overflow: hidden; }
+  .slide { position: absolute; inset: 0; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity .45s ease, visibility 0s linear .45s; }
+  .slide.active { visibility: visible; opacity: 1; transition: opacity .45s ease; }
+  #ui { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; padding-bottom: env(safe-area-inset-bottom, 0px); display: flex; align-items: center; justify-content: center; gap: 14px; font: 600 15px/1 var(--label); letter-spacing: .12em; color: #C9C3D8; }
+  #ui button { font: inherit; letter-spacing: inherit; color: inherit; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; height: 36px; min-width: 44px; padding: 0 14px; cursor: pointer; }
+  #ui button:hover { background: rgba(255,255,255,.14); color: #fff; }
+  #count { font-variant-numeric: tabular-nums; min-width: 84px; text-align: center; }
+  #prog { width: 180px; height: 8px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
+  #prog i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, var(--madder-2) 0 10px, var(--resist) 10px 12px, var(--indigo-3) 12px 22px, var(--resist) 22px 24px); transition: width .4s ease; }
+  #hint { position: fixed; top: 10px; right: 14px; font: 500 13px/1 var(--label); letter-spacing: .1em; color: rgba(201,195,216,.55); }
+  @media (max-width: 700px) { #prog, #hint { display: none; } }
+  /* Full screen: no controls on screen; keys and swipes still move the slides */
+  .fs #ui, .fs #hint { display: none; }
+
+  /* ---------- Two sides of the cloth ---------- */
+  .cotton { background-color: var(--cotton); color: var(--ink);
+    background-image: repeating-linear-gradient(0deg, rgba(92,70,40,.045) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(92,70,40,.035) 0 1px, transparent 1px 4px); }
+  .indigo { background-color: var(--indigo); color: var(--resist);
+    background-image: radial-gradient(circle, rgba(246,240,226,.075) 1.6px, transparent 2.2px), radial-gradient(ellipse at 20% 0%, rgba(42,58,134,.55), transparent 60%);
+    background-size: 30px 30px, 100% 100%; }
+  .madderside { background-color: var(--madder); color: var(--resist);
+    background-image: radial-gradient(circle, rgba(28,23,20,.18) 1.6px, transparent 2.2px); background-size: 26px 26px; }
+
+  .wat { position: absolute; left: 0; width: 100%; height: 30px; display: block; }
+  .wat.top { top: 0; } .wat.bot { bottom: 0; }
+  .tag { position: absolute; top: 50px; left: 80px; font: 600 15px/1 var(--label); letter-spacing: .2em; text-transform: uppercase; color: var(--madder); display: flex; gap: 12px; align-items: center; }
+  .indigo .tag, .madderside .tag { color: var(--harda); }
+  .tag b { font-weight: 700; padding: 4px 7px; border: 1.5px solid currentColor; }
+  .foot { position: absolute; left: 80px; right: 80px; bottom: 22px; display: flex; justify-content: space-between; font: 500 13px/1.3 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .indigo .foot, .madderside .foot { color: rgba(246,240,226,.6); }
+  .src { font-style: normal; letter-spacing: .04em; text-transform: none; max-width: 1150px; }
+  .pad { position: absolute; top: 86px; left: 80px; right: 80px; bottom: 60px; grid-template-rows: minmax(0, 1fr); }
+
+  h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.02; text-wrap: balance; letter-spacing: -.005em; }
+  h2 { font-size: 68px; color: var(--madder); }
+  .indigo h2, .madderside h2 { color: var(--resist); }
+  h3 { font-size: 30px; line-height: 1.1; }
+  p { margin: 0; }
+  .lede { font-size: 25px; line-height: 1.42; max-width: 60ch; }
+  .lab { font: 700 14px/1.2 var(--label); letter-spacing: .16em; text-transform: uppercase; color: var(--madder); }
+  .indigo .lab, .madderside .lab { color: var(--harda); }
+  .small { font-size: 18px; line-height: 1.42; }
+  .xs { font-size: 15.5px; line-height: 1.4; }
+  em.n { font-style: normal; font-family: var(--label); font-weight: 600; letter-spacing: .02em; }
+  .loc { font-style: italic; color: var(--madder); }
+  .indigo .loc { color: #F2C86B; }
+  .num { font-family: var(--display); font-variant-numeric: tabular-nums; line-height: 1; }
+
+  /* Figures: every photo carries its credit */
+  figure { margin: 0; position: relative; display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; }
+  figure .ph { flex: 1; min-height: 0; overflow: hidden; background: var(--cotton-2); }
+  figure img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  figure.contain .ph { background: transparent; }
+  figure.contain img { object-fit: contain; }
+  figcaption { font: 500 12.5px/1.3 var(--label); letter-spacing: .05em; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  figcaption a { text-decoration: none; border-bottom: 1px solid currentColor; }
+  .indigo figcaption, .madderside figcaption { color: rgba(246,240,226,.7); }
+  .arch .ph { border-radius: 999px 999px 0 0; }
+  .frame .ph { outline: 3px solid var(--madder); outline-offset: 6px; }
+  .indigo .frame .ph { outline-color: var(--harda); }
+
+  /* Entrance: like a block being pressed onto cloth */
+  .slide.active .rise { animation: rise .75s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--d, 0) * 90ms + 120ms); }
+  @keyframes rise { from { opacity: .15; transform: translateY(16px); } }
+  .slide.active .stamp { animation: stamp .42s cubic-bezier(.3,1.4,.5,1) both; animation-delay: calc(var(--i) * 70ms + 300ms); }
+  @keyframes stamp { from { opacity: .2; transform: scale(1.18); } }
+  @media (prefers-reduced-motion: reduce) { .slide, .slide.active { transition: none; } .slide.active .rise, .slide.active .stamp { animation: none; } #prog i { transition: none; } }
+
+  /* ---------- Slide-specific layouts ---------- */
+  /* 1 Title */
+  #s-title .pad { top: 60px; display: grid; grid-template-columns: 1fr 520px; gap: 70px; align-items: center; }
+  #s-title h1 { font-size: 230px; line-height: .86; color: var(--resist); letter-spacing: -.02em; }
+  #s-title .scripts { display: flex; gap: 28px; align-items: baseline; font-size: 44px; color: #F2C86B; margin-top: 18px; }
+  #s-title .scripts span:nth-child(1) { font-family: "Noto Naskh Arabic", serif; }
+  #s-title .scripts span:nth-child(2) { font-family: "Noto Serif Gujarati", serif; }
+  #s-title .scripts span:nth-child(3) { font-family: "Noto Serif Devanagari", serif; }
+  #s-title .scripts i { font: 500 14px/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: rgba(246,240,226,.55); font-style: normal; }
+  #s-title .sub { font-size: 27px; line-height: 1.38; max-width: 30ch; margin-top: 34px; color: rgba(246,240,226,.92); }
+  #s-title .by { margin-top: 44px; display: flex; gap: 18px; align-items: center; }
+  #s-title .by .who { font-family: var(--display); font-size: 40px; color: var(--resist); }
+  #s-title .by .lab { color: var(--harda); }
+  #s-title figure { height: 700px; }
+  .stamps { position: absolute; left: 0; right: 0; bottom: 30px; height: 64px; display: flex; }
+  .stamps svg { flex: 1; height: 64px; display: block; }
+
+  /* 2 Intro */
+  #s-intro .pad { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; }
+  #s-intro blockquote { margin: 26px 0 0; font-size: 34px; line-height: 1.3; font-style: italic; color: var(--ink); border-left: 6px solid var(--madder); padding-left: 28px; }
+  #s-intro cite { display: block; margin-top: 14px; font: 600 15px/1.3 var(--label); letter-spacing: .08em; font-style: normal; color: var(--ink-soft); }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; margin-top: 34px; }
+  .facts div { border-top: 2px solid var(--iron); padding-top: 10px; }
+  .facts b { display: block; font: 700 15px/1.2 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--madder); margin-bottom: 4px; }
+  .names { display: grid; gap: 12px; margin-top: 14px; }
+  .names div { display: grid; grid-template-columns: 170px 1fr; gap: 14px; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--line-c); }
+  .names b { font-family: var(--display); font-weight: 400; font-size: 30px; color: var(--indigo); }
+  .colours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 30px; border: 2px solid var(--iron); }
+  .colours div { padding: 16px 14px 14px; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; }
+  .colours b { font: 700 13px/1.2 var(--label); letter-spacing: .14em; text-transform: uppercase; }
+  .colours span { font-family: var(--display); font-size: 27px; line-height: 1.05; }
+  .colours small { font: 500 13px/1.3 var(--label); letter-spacing: .04em; opacity: .8; }
+
+  /* 3 Priest-King */
+  #s-king .pad { display: grid; grid-template-columns: 470px 1fr; gap: 80px; align-items: stretch; }
+  #s-king figure { height: 740px; }
+  #s-king .big { font-size: 150px; color: #F2C86B; letter-spacing: -.02em; }
+  #s-king .big small { display: block; font: 600 20px/1.2 var(--label); letter-spacing: .2em; color: rgba(246,240,226,.7); margin-top: 8px; }
+  .kakar-row { display: flex; gap: 26px; align-items: center; margin-top: 30px; padding: 22px 26px; border: 1.5px solid var(--line-i); }
+  .kakar-row svg { width: 96px; height: 96px; color: var(--madder-2); flex: none; }
+  .caveat { margin-top: 22px; font-size: 17px; color: rgba(246,240,226,.72); border-left: 3px solid var(--harda); padding-left: 16px; }
+
+  /* 4 Timeline */
+  #s-time .rail { position: absolute; left: 0; right: 0; top: 356px; height: 4px; background: var(--iron); }
+  #s-time .events { position: absolute; left: 0; right: 0; top: 160px; bottom: 30px; display: grid; grid-template-columns: repeat(7, 1fr); column-gap: 18px; }
+  .ev { position: relative; display: flex; flex-direction: column; }
+  .ev .yr { font-family: var(--display); font-size: 36px; line-height: 1; color: var(--indigo); height: 150px; display: flex; align-items: flex-end; padding-bottom: 26px; }
+  .ev .yr small { font: 600 14px/1 var(--label); letter-spacing: .1em; color: var(--ink-soft); margin-left: 4px; }
+  .ev::before { content: ""; position: absolute; top: 187px; left: 0; width: 18px; height: 18px; background: var(--madder); transform: rotate(45deg); outline: 4px solid var(--cotton); }
+  .ev .tx { padding-top: 46px; font-size: 17.5px; line-height: 1.42; }
+  .ev .tx b { display: block; font: 700 16px/1.25 var(--label); letter-spacing: .06em; text-transform: uppercase; color: var(--madder); margin-bottom: 6px; }
+
+  /* 5 Types */
+  #s-types .pad { top: 80px; }
+  .spec { display: grid; grid-template-columns: 170px repeat(4, 1fr); margin-top: 22px; border-top: 2px solid var(--iron); }
+  .spec > div { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line-c); font-size: 16.5px; line-height: 1.36; }
+  .spec > div.rh { font: 700 14px/1.2 var(--label); letter-spacing: .14em; text-transform: uppercase; color: var(--madder); padding-top: 14px; }
+  .spec .th { padding-top: 12px; }
+  .spec .th h3 { font-size: 31px; color: var(--indigo); }
+  .spec .th .ph { flex: none; height: 150px; }
+  .spec .th figure { margin-bottom: 10px; }
+  .spec .barmer-swatch { height: 150px; margin-bottom: 29px; display: block; width: 100%; }
+
+  /* 6 Materials */
+  #s-mat .pad { display: grid; grid-template-columns: 1fr 360px; gap: 50px; }
+  .matgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px 30px; margin-top: 26px; }
+  .matgrid div h3 { font-size: 25px; color: var(--indigo); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--iron); }
+  .matgrid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 16.5px; line-height: 1.34; }
+  .matgrid li b { font-weight: 600; }
+  .strip3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 176px; margin-top: 18px; }
+
+  /* 7 Tools */
+  #s-tools .pad { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 56px; }
+  .toolsimgs { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 300px 260px; gap: 16px; margin-top: 8px; }
+  .toolsimgs figure:first-child { grid-row: span 1; }
+  .kit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; margin-top: 16px; }
+  .kit div { border-top: 1px solid var(--line-i); padding-top: 8px; font-size: 16.5px; line-height: 1.35; }
+  .kit b { display: block; font-family: var(--display); font-weight: 400; font-size: 22px; color: #F2C86B; }
+  .blockroles { display: flex; gap: 12px; margin-top: 18px; }
+  .blockroles div { flex: 1; border: 1.5px solid var(--harda); padding: 12px 14px; font-size: 16px; line-height: 1.35; }
+  .blockroles b { display: block; font-family: var(--display); font-weight: 400; font-size: 26px; color: #F2C86B; }
+
+  /* 8 Anatomy */
+  #s-anat .pad { display: grid; grid-template-columns: 820px 1fr; gap: 56px; }
+  #s-anat svg.cloth { width: 100%; height: auto; display: block; margin-top: 24px; }
+  .princ { display: grid; gap: 16px; margin-top: 28px; }
+  .princ div { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; font-size: 18px; line-height: 1.4; }
+  .princ svg { width: 40px; height: 40px; color: var(--madder); }
+  .princ b { font-weight: 600; }
+  .pull { margin-top: 26px; font-family: var(--display); font-size: 30px; line-height: 1.2; color: var(--indigo); }
+  .pull small { display: block; margin-top: 8px; font: 600 14px/1.3 var(--label); letter-spacing: .08em; color: var(--ink-soft); }
+
+  /* 9 Motifs */
+  #s-motif .pad { display: grid; grid-template-columns: 1fr 400px; gap: 44px; }
+  .motifs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 24px; }
+  .mo { background: var(--resist); color: var(--ink); padding: 14px 14px 12px; display: grid; grid-template-columns: 62px 1fr; gap: 4px 14px; align-items: center; min-height: 118px; }
+  .mo svg { width: 62px; height: 62px; color: var(--madder); grid-row: span 2; }
+  .mo b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1; color: var(--indigo); }
+  .mo span { font-size: 15.5px; line-height: 1.3; }
+  .mo small { grid-column: 1 / -1; font: 600 11.5px/1.2 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+
+  /* 10-12 Process */
+  .proc .pad { display: grid; grid-template-columns: 1fr 600px; gap: 50px; }
+  .proc .phase { font: 700 15px/1 var(--label); letter-spacing: .22em; text-transform: uppercase; }
+  .stages { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 14px; }
+  .stages li { display: grid; grid-template-columns: 72px 1fr; gap: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line-c); }
+  .indigo .stages li { border-color: var(--line-i); }
+  .stages .no { font-family: var(--display); font-size: 48px; line-height: .9; color: var(--madder); font-variant-numeric: tabular-nums; }
+  .indigo .stages .no { color: #F2C86B; }
+  .stages h3 { font-size: 28px; margin-bottom: 4px; }
+  .stages h3 i { font: 600 15px/1 var(--label); font-style: normal; letter-spacing: .1em; text-transform: uppercase; margin-left: 10px; color: var(--ink-soft); }
+  .indigo .stages h3 i { color: rgba(246,240,226,.6); }
+  .stages p { font-size: 17px; line-height: 1.4; }
+  .procimgs { display: grid; gap: 14px; }
+  .meter { display: flex; gap: 4px; margin-top: 18px; }
+  .meter i { flex: 1; height: 10px; background: var(--line-c); }
+  .indigo .meter i { background: var(--line-i); }
+  .meter i.on { background: var(--madder); }
+  .indigo .meter i.on { background: #F2C86B; }
+  .meterlab { display: flex; justify-content: space-between; font: 600 12.5px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; margin-top: 6px; opacity: .75; }
+
+  /* 13-14 Culture */
+  #s-cult1 .pad { display: grid; grid-template-columns: 540px 1fr; gap: 56px; }
+  .life { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 34px; margin-top: 24px; }
+  .life div { border-top: 2px solid #F2C86B; padding-top: 10px; }
+  .life h3 { font-size: 27px; color: #F2C86B; margin-bottom: 6px; }
+  .life p { font-size: 17px; line-height: 1.4; }
+  .life q { font-style: italic; }
+  #s-cult2 .pad { display: grid; grid-template-columns: 1fr 620px; gap: 56px; }
+  .marks { display: grid; gap: 18px; margin-top: 26px; }
+  .marks div { display: grid; grid-template-columns: 190px 1fr; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(246,240,226,.3); font-size: 18px; line-height: 1.4; }
+  .marks b { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1.05; color: var(--resist); }
+
+  /* 15 Contemporary */
+  #s-now .pad { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 50px; }
+  .collage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 330px 330px; gap: 14px; }
+  .collage figure:nth-child(1) { grid-row: span 2; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chips span { font: 600 15px/1 var(--label); letter-spacing: .06em; text-transform: uppercase; padding: 8px 11px; border: 1.5px solid var(--iron); }
+  .chips.fab span { border-color: var(--madder); color: var(--madder); }
+  .moments { display: grid; gap: 12px; margin-top: 22px; }
+  .moments div { display: grid; grid-template-columns: 118px 1fr; gap: 16px; font-size: 16.5px; line-height: 1.38; border-top: 1px solid var(--line-c); padding-top: 10px; }
+  .moments b { font: 700 16px/1.2 var(--label); letter-spacing: .08em; color: var(--madder); }
+
+  /* 16 Support */
+  #s-support .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 26px; }
+  .org { border: 1.5px solid var(--line-i); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-height: 196px; }
+  .org.key { border-color: #F2C86B; background: rgba(242,200,107,.07); }
+  .org h3 { font-size: 25px; color: var(--resist); }
+  .org .where { font: 600 13px/1.2 var(--label); letter-spacing: .12em; text-transform: uppercase; color: #F2C86B; }
+  .org p { font-size: 15.5px; line-height: 1.38; color: rgba(246,240,226,.88); }
+
+  /* 17 Designers */
+  #s-design .pad { display: grid; grid-template-columns: 1.25fr 1fr; gap: 54px; }
+  .people { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 26px; margin-top: 18px; }
+  .person { display: grid; grid-template-columns: 1fr; gap: 3px; border-top: 2px solid var(--iron); padding-top: 9px; }
+  .person b { font-family: var(--display); font-weight: 400; font-size: 23px; line-height: 1.05; color: var(--indigo); }
+  .person span { font-size: 15.5px; line-height: 1.36; }
+  .portraits { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; height: 250px; margin-top: 16px; }
+  .brands { display: grid; gap: 10px; margin-top: 18px; }
+  .brands div { font-size: 16px; line-height: 1.38; border-top: 1px solid var(--line-c); padding-top: 8px; }
+  .brands b { font: 700 16px/1.2 var(--label); letter-spacing: .06em; text-transform: uppercase; color: var(--madder); }
+
+  /* 18 Four pillars */
+  #s-four .quad { position: absolute; top: 150px; left: 0; right: 0; bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0; }
+  .q { padding: 24px 34px 18px 0; border-top: 1.5px solid var(--line-i); display: grid; grid-template-columns: 210px 1fr; gap: 26px; }
+  .q:nth-child(even) { padding-left: 34px; padding-right: 0; border-left: 1.5px solid var(--line-i); }
+  .q .k { display: flex; flex-direction: column; gap: 10px; }
+  .q .k .lab { font-size: 15px; }
+  .q .k .num { font-size: 76px; color: #F2C86B; }
+  .q .k small { font: 600 14px/1.25 var(--label); letter-spacing: .06em; color: rgba(246,240,226,.7); }
+  .q h3 { font-size: 30px; margin-bottom: 8px; }
+  .q ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 16.5px; line-height: 1.36; }
+
+  /* 19 Market */
+  #s-market .pad { display: grid; grid-template-columns: 1fr 440px; gap: 50px; }
+  #chart { width: 100%; height: auto; display: block; margin-top: 12px; }
+  #chart text { font-family: var(--label); }
+  .legend { display: flex; gap: 22px; font: 600 14px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; margin-top: 16px; align-items: center; }
+  .legend i { display: inline-block; width: 26px; height: 12px; vertical-align: -1px; margin-right: 8px; }
+  .side { display: grid; gap: 16px; align-content: start; }
+  .side div { border-top: 2px solid var(--iron); padding-top: 10px; font-size: 16.5px; line-height: 1.38; }
+  .side b.big { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1.05; color: var(--madder); display: block; margin-bottom: 4px; }
+  .spot { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+  .spot li { padding-left: 22px; position: relative; font-size: 15.5px; }
+  .spot li::before { content: ""; position: absolute; left: 3px; top: 8px; width: 9px; height: 9px; background: var(--madder); transform: rotate(45deg); }
+
+  /* 20 Conclusion */
+  #s-end { background-color: var(--indigo-2); }
+  #s-end .bg { position: absolute; inset: 0; }
+  #s-end .bg img { width: 100%; height: 100%; object-fit: cover; opacity: .32; }
+  #s-end .bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--indigo-2) 25%, rgba(14,22,64,.55) 70%, rgba(14,22,64,.25)); }
+  #s-end .pad { display: flex; flex-direction: column; justify-content: center; }
+  #s-end h2 { font-size: 92px; max-width: 13ch; }
+  #s-end .lede { margin-top: 30px; max-width: 54ch; color: rgba(246,240,226,.92); }
+  .threads { display: grid; grid-template-columns: repeat(3, 280px); gap: 28px; margin-top: 40px; }
+  .threads div { border-top: 3px solid #F2C86B; padding-top: 12px; font-size: 17px; line-height: 1.4; }
+  .threads b { display: block; font-family: var(--display); font-weight: 400; font-size: 26px; margin-bottom: 4px; color: #F2C86B; }
+  #s-end figcaption { position: absolute; right: 80px; bottom: 60px; }
+
+  /* 21-22 References */
+  .refs { position: absolute; top: 212px; left: 80px; right: 80px; bottom: 62px; columns: 3; column-gap: 40px; column-fill: auto; font-size: 13px; line-height: 1.38; }
+  .refs h4 { font: 700 13px/1.2 var(--label); letter-spacing: .16em; text-transform: uppercase; color: var(--madder); margin: 0 0 6px; break-after: avoid; }
+  .refs h4:not(:first-child) { margin-top: 12px; }
+  .refs p { margin: 0 0 5px; break-inside: avoid; }
+  .refs a { text-decoration: none; border-bottom: 1px solid rgba(162,41,28,.35); word-break: break-word; }
+  .credits { position: absolute; top: 212px; left: 80px; right: 80px; bottom: 62px; columns: 3; column-gap: 40px; column-fill: auto; font-size: 12.5px; line-height: 1.34; }
+  .credits p { margin: 0 0 6px; break-inside: avoid; }
+  .credits b { font-weight: 600; }
+  .credits a { text-decoration: none; border-bottom: 1px solid rgba(162,41,28,.35); }
+</style>
+
+<!-- Shared ajrakh patterns and motif glyphs (drawn as simplified sketches, not traced blocks) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="p-red" x="0" y="3" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#A2291C"/>
+      <rect x="6" y="6" width="12" height="12" fill="#1C1714" transform="rotate(45 12 12)"/>
+      <circle cx="12" cy="12" r="2.2" fill="#F6F0E2"/>
+      <circle cx="0" cy="12" r="1.8" fill="#F6F0E2"/><circle cx="24" cy="12" r="1.8" fill="#F6F0E2"/>
+    </pattern>
+    <pattern id="p-ind" x="0" y="3" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#0E1640"/>
+      <g fill="#C9432F"><rect x="6.5" y="6.5" width="11" height="11"/><rect x="6.5" y="6.5" width="11" height="11" transform="rotate(45 12 12)"/></g>
+      <circle cx="12" cy="12" r="2.2" fill="#F6F0E2"/>
+      <circle cx="0" cy="0" r="1.6" fill="#F6F0E2"/><circle cx="24" cy="0" r="1.6" fill="#F6F0E2"/><circle cx="0" cy="24" r="1.6" fill="#F6F0E2"/><circle cx="24" cy="24" r="1.6" fill="#F6F0E2"/>
+    </pattern>
+    <pattern id="p-jaal" width="60" height="60" patternUnits="userSpaceOnUse">
+      <rect width="60" height="60" fill="#16225C"/>
+      <g transform="translate(30 30)"><g fill="#A2291C"><rect x="-13" y="-13" width="26" height="26"/><rect x="-13" y="-13" width="26" height="26" transform="rotate(45)"/></g><circle r="7" fill="#1C1714"/><circle r="3" fill="#F6F0E2"/></g>
+      <g fill="#F6F0E2"><circle cx="0" cy="0" r="3"/><circle cx="60" cy="0" r="3"/><circle cx="0" cy="60" r="3"/><circle cx="60" cy="60" r="3"/><circle cx="30" cy="2.5" r="1.6"/><circle cx="30" cy="57.5" r="1.6"/><circle cx="2.5" cy="30" r="1.6"/><circle cx="57.5" cy="30" r="1.6"/></g>
+    </pattern>
+    <pattern id="p-barmer" width="50" height="50" patternUnits="userSpaceOnUse">
+      <rect width="50" height="50" fill="#1C2A5E"/>
+      <rect x="10" y="10" width="30" height="30" fill="#7E2218" transform="rotate(45 25 25)"/>
+      <rect x="18" y="18" width="14" height="14" fill="#1C1714"/>
+      <circle cx="25" cy="25" r="3" fill="#F6F0E2"/>
+      <g fill="#F6F0E2"><circle cx="0" cy="0" r="2.5"/><circle cx="50" cy="0" r="2.5"/><circle cx="0" cy="50" r="2.5"/><circle cx="50" cy="50" r="2.5"/></g>
+    </pattern>
+    <pattern id="p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#E3D7BF"/><rect width="3" height="8" fill="#8A7B6B"/>
+    </pattern>
+
+    <symbol id="m-star" viewBox="0 0 100 100"><g fill="currentColor"><rect x="21" y="21" width="58" height="58"/><rect x="21" y="21" width="58" height="58" transform="rotate(45 50 50)"/></g><circle cx="50" cy="50" r="12" fill="#F6F0E2"/><circle cx="50" cy="50" r="5" fill="currentColor"/></symbol>
+    <symbol id="m-kakar" viewBox="0 0 100 100"><g fill="currentColor"><circle cx="50" cy="30" r="20"/><circle cx="30" cy="64" r="20"/><circle cx="70" cy="64" r="20"/></g><g fill="#F6F0E2"><circle cx="50" cy="30" r="6.5"/><circle cx="30" cy="64" r="6.5"/><circle cx="70" cy="64" r="6.5"/><circle cx="50" cy="53" r="4"/></g></symbol>
+    <symbol id="m-badam" viewBox="0 0 100 100"><path d="M50 6 C80 32 80 68 50 94 C20 68 20 32 50 6Z" fill="currentColor"/><path d="M50 24 C66 40 66 60 50 76 C34 60 34 40 50 24Z" fill="#F6F0E2"/><circle cx="50" cy="50" r="8" fill="currentColor"/></symbol>
+    <symbol id="m-riyal" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor"/><circle cx="50" cy="50" r="32" fill="#F6F0E2"/><circle cx="50" cy="50" r="24" fill="currentColor"/><circle cx="50" cy="50" r="9" fill="#F6F0E2"/><g fill="#F6F0E2"><circle cx="88.5" cy="50" r="3.2"/><circle cx="77.2" cy="77.2" r="3.2"/><circle cx="50" cy="88.5" r="3.2"/><circle cx="22.8" cy="77.2" r="3.2"/><circle cx="11.5" cy="50" r="3.2"/><circle cx="22.8" cy="22.8" r="3.2"/><circle cx="50" cy="11.5" r="3.2"/><circle cx="77.2" cy="22.8" r="3.2"/></g></symbol>
+    <symbol id="m-mifudi" viewBox="0 0 100 100"><g fill="currentColor"><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(30 38)"/><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(70 38)"/><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(50 80)"/></g></symbol>
+    <symbol id="m-koyaro" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><polygon points="86.96,65.3 65.3,86.96 34.7,86.96 13.04,65.3 13.04,34.7 34.7,13.04 65.3,13.04 86.96,34.7"/><polygon points="70.3,58.4 58.4,70.3 41.6,70.3 29.7,58.4 29.7,41.6 41.6,29.7 58.4,29.7 70.3,41.6"/><path d="M86.96 65.3 13.04 34.7M65.3 86.96 34.7 13.04M34.7 86.96 65.3 13.04M13.04 65.3 86.96 34.7"/></g><circle cx="50" cy="50" r="7" fill="currentColor"/></symbol>
+    <symbol id="m-mohar" viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" fill="currentColor"/><rect x="27" y="27" width="46" height="46" fill="#F6F0E2" transform="rotate(45 50 50)"/><rect x="39" y="39" width="22" height="22" fill="currentColor" transform="rotate(45 50 50)"/><g fill="#F6F0E2"><circle cx="22" cy="22" r="4"/><circle cx="78" cy="22" r="4"/><circle cx="22" cy="78" r="4"/><circle cx="78" cy="78" r="4"/></g></symbol>
+    <symbol id="m-jalebi" viewBox="0 0 100 100"><path d="M50 50 a5 5 0 0 1 10 0 a10 10 0 0 1 -20 0 a15 15 0 0 1 30 0 a20 20 0 0 1 -40 0 a25 25 0 0 1 50 0" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" transform="translate(-4 2)"/></symbol>
+    <symbol id="m-champa" viewBox="0 0 100 100"><path d="M50 6 C66 28 66 56 50 72 C34 56 34 28 50 6Z" fill="currentColor"/><path d="M50 22 L50 58" stroke="#F6F0E2" stroke-width="4" stroke-linecap="round"/><path d="M50 72 C40 66 26 70 18 84 C32 88 44 84 50 72Z M50 72 C60 66 74 70 82 84 C68 88 56 84 50 72Z" fill="currentColor"/><path d="M50 72 L50 96" stroke="currentColor" stroke-width="5"/></symbol>
+    <symbol id="m-kharek" viewBox="0 0 100 100"><path d="M50 30 L50 10 M50 18 L36 8 M50 18 L64 8" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/><g fill="currentColor"><ellipse cx="31" cy="62" rx="13" ry="22"/><ellipse cx="50" cy="54" rx="13" ry="22"/><ellipse cx="69" cy="62" rx="13" ry="22"/></g><g fill="#F6F0E2"><ellipse cx="27" cy="56" rx="3" ry="8"/><ellipse cx="46" cy="48" rx="3" ry="8"/><ellipse cx="65" cy="56" rx="3" ry="8"/></g></symbol>
+    <symbol id="m-mor" viewBox="0 0 100 100"><ellipse cx="50" cy="40" rx="27" ry="34" fill="currentColor"/><ellipse cx="50" cy="42" rx="17" ry="22" fill="#F6F0E2"/><ellipse cx="50" cy="44" rx="9" ry="12" fill="currentColor"/><path d="M50 74 L50 97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div id="stage" role="region" aria-roledescription="slide deck" aria-label="Ajrakh presentation">
+
+<!-- 01 TITLE -->
+<section class="slide indigo active" id="s-title" data-name="Title">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="pad">
+    <div>
+      <p class="lab rise" style="--d:0">A study of craft, community &amp; continuity</p>
+      <h1 class="rise" style="--d:1" aria-label="Ajrakh">Ajrakh</h1>
+      <div class="scripts rise" style="--d:2" aria-label="Ajrakh in Sindhi, Gujarati and Hindi script">
+        <span lang="sd">اجرڪ</span><span lang="gu">અજરખ</span><span lang="hi">अजरख</span><i>Sindhi · Gujarati · Hindi</i>
+      </div>
+      <p class="sub rise" style="--d:3">A cloth printed with the sky: resist-dyed with indigo and madder, and block-printed by hand in Sindh, Kutch and Barmer, traditionally on both sides.</p>
+      <div class="by rise" style="--d:4"><span class="lab">Presented by</span><span class="who">Prisha Palney</span></div>
+    </div>
+    <figure class="arch frame" data-img="01_hero_block_printing_hands" style="height:640px"></figure>
+  </div>
+  <div class="stamps" aria-hidden="true"></div>
+</section>
+
+<!-- 02 INTRO -->
+<section class="slide cotton" id="s-intro" data-name="What is ajrakh">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>01</b> Introduction</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">What is ajrakh?</h2>
+      <blockquote class="rise" style="--d:1">“A double-sided, block-printed textile worn as caste dress by cattle herders in the desert regions of Kachchh and Thar … and Sindh … made by Khatri artisans.”
+        <cite>Eiluned Edwards, <em>Textile History</em> 47(2), 2016</cite></blockquote>
+      <div class="facts rise" style="--d:2">
+        <div><b>Technique</b>Resist and mordant printing with carved wooden blocks, then dyeing in indigo and madder</div>
+        <div><b>Bipuri</b>Traditionally printed on both sides so the pattern lines up exactly. Single-sided work is <span class="loc">ekpuri</span></div>
+        <div><b>Makers</b>The Khatri community of dyers and printers, for about 400 years in Kutch</div>
+        <div><b>Time</b>14–16 stages over 2–3 weeks in Kutch; up to 21 stages and about a month in Sindh</div>
+      </div>
+    </div>
+    <div>
+      <p class="lab rise" style="margin-top:52px">Where the name comes from</p>
+      <div class="names rise" style="--d:1">
+        <div><b>Azrak</b><span class="small">Arabic for blue or indigo. The derivation most scholars and craft bodies give.</span></div>
+        <div><b>“Aaj rakh”</b><span class="small">“Keep it today.” A local story among printers, because each layer has to rest before the next.</span></div>
+        <div><b>A-jharat</b><span class="small">Sanskrit, “that which does not fade”, as recorded by Gaatha.</span></div>
+      </div>
+      <p class="lab rise" style="--d:2;margin-top:30px">The colours hold the sky</p>
+      <div class="colours rise" style="--d:3">
+        <div style="background:var(--indigo);color:var(--resist)"><b>Vadali / neela</b><span>Sky</span><small>Indigo</small></div>
+        <div style="background:var(--madder);color:var(--resist)"><b>Laal</b><span>Sunset light</span><small>Madder, alizarin</small></div>
+        <div style="background:var(--iron);color:var(--resist)"><b>Kalo</b><span>Dark night</span><small>Iron</small></div>
+        <div style="background:var(--resist);color:var(--ink)"><b>Safed / dhodo</b><span>Stars</span><small>Lime resist</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Edwards 2016 · Karolia &amp; Buch, IJTK 2008 (colour names) · Khamir · D'Source · Gaatha · Nandita Bhavnani, Sindhnamah</span><span class="pg"></span></div>
+</section>
+
+<!-- 03 PRIEST-KING -->
+<section class="slide indigo" id="s-king" data-name="Origins: the Priest-King">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>02</b> Origin &amp; history</div>
+  <div class="pad">
+    <figure class="arch" data-img="02_priest_king_trefoil_shawl" style="height:740px"></figure>
+    <div style="padding-top:44px">
+      <h2 class="rise">A pattern older than the name</h2>
+      <p class="big num rise" style="--d:1;margin-top:34px">2000–1900<small>BCE · MOHENJO-DARO, SINDH</small></p>
+      <p class="lede rise" style="--d:2;margin-top:26px">The steatite “Priest-King” from Mohenjo-daro wears a cloak carved with trefoils and circles that <em>still show traces of red</em>. It is now in the National Museum of Pakistan (NMP 50-852).</p>
+      <div class="kakar-row rise" style="--d:3">
+        <svg aria-hidden="true"><use href="#m-kakar"/></svg>
+        <p class="small">“Block printers will identify the trefoil motif as <span class="loc">kakkar</span>, a cloud pattern common to the traditional Ajrakh patterns made in Sindh and Kachchh.” <br><span class="xs" style="opacity:.75">Khamir, “Khatris &amp; Community”</span></p>
+      </div>
+      <p class="caveat rise" style="--d:4">A cotton fragment from Mohenjo-daro, carbon-dated to 1760 BCE ±115, is reported to show madder dyeing (Ashmolean, Barnes 1997). Linking the statue to ajrakh is an interpretation, not a proven fact.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Wikipedia “Priest-King” (NMP 50-852) · Khamir exhibitions · Ashmolean Museum, R. Barnes 1997</span><span class="pg"></span></div>
+</section>
+
+<!-- 04 TIMELINE -->
+<section class="slide cotton" id="s-time" data-name="History timeline">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>02</b> Origin &amp; history</div>
+  <div class="pad">
+    <h2 class="rise" style="margin-top:40px">From the Indus to Ajrakhpur</h2>
+    <div class="rail"></div>
+    <div class="events">
+      <div class="ev rise" style="--d:1"><div class="yr">1010 <small>CE ±55</small></div><div class="tx"><b>Trade to Egypt</b>Indian, probably Gujarati, resist- and mordant-dyed cottons reached Egypt. The earliest at Oxford's Ashmolean is dated to c. 1010 CE ±55; most are 10th–15th c. Relatives of ajrakh, not labelled as such.</div></div>
+      <div class="ev rise" style="--d:2"><div class="yr">1585–1631</div><div class="tx"><b>Sindh to Kutch</b>Rao Bharmalji I invited Khatri printers from Sindh. Family tradition names Jinda Jiva as the first to settle at Dhamadka on the Saran river (dates vary).</div></div>
+      <div class="ev rise" style="--d:3"><div class="yr">1855–83</div><div class="tx"><b>Into museums</b>The V&amp;A, London collects Sindh ajrakh, including a piece from Thatta (IS.216-1883). Today 17 of its records match “ajrakh”.</div></div>
+      <div class="ev rise" style="--d:4"><div class="yr">1947</div><div class="tx"><b>Partition</b>The border cut the Kutch–Sindh trade and the herders' routes. Khatris from Mirpur, Sindh settled in Barmer, Sanganer and Bagru.</div></div>
+      <div class="ev rise" style="--d:5"><div class="yr">1950s–70s</div><div class="tx"><b>Loss and revival</b>Cheap chemical dyes halted natural dyeing for about 15 years. It resumed as 1970s government schemes brought artisans and designers together.</div></div>
+      <div class="ev rise" style="--d:6"><div class="yr">2001</div><div class="tx"><b>Earthquake</b>The Bhuj earthquake devastated Dhamadka and raised iron in the water. Led by Dr Ismail Khatri, the community bought land near Bhuj together and founded <span class="loc">Ajrakhpur</span>.</div></div>
+      <div class="ev rise" style="--d:7"><div class="yr">2024</div><div class="tx"><b>GI certificate</b>“Kutch Ajrakh Print of Gujarat” is registered as a Geographical Indication (filed 2023, certificate 22 Apr 2024).</div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Ashmolean (Barnes 1997) · Sahapedia (M. Khan) · Warwick oral history, Dr Ismail Khatri · V&amp;A · Textiles Committee, GoI · Khamir · IP India GI 1050</span><span class="pg"></span></div>
+</section>
+
+<!-- 05 TYPES -->
+<section class="slide cotton" id="s-types" data-name="Types and communities">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>03</b> Types &amp; communities</div>
+  <div class="pad">
+    <h2 class="rise" style="margin-top:6px">Four ajraks, four peoples</h2>
+    <div class="spec rise" style="--d:1">
+      <div class="rh" style="padding-top:170px">Type</div>
+      <div class="th"><figure data-img="04b_sindhi_ajrak_thatta_1882_VA" data-short="1"></figure><h3>Sindhi</h3></div>
+      <div class="th"><figure data-img="04c_kutchi_ajrakh_shawl_VA" data-short="1"></figure><h3>Kutchi</h3></div>
+      <div class="th"><svg class="barmer-swatch" role="img" aria-label="Illustrative swatch: bold geometric Barmer print in dark blue and red"><rect width="100%" height="100%" fill="url(#p-barmer)"/></svg><h3>Barmeri</h3></div>
+      <div class="th"><figure data-img="04d_saraiki_ajrak_blue" data-short="1"></figure><h3>Saraiki</h3></div>
+
+      <div class="rh">Where</div>
+      <div>Sindh, Pakistan: Matiari, Hala, Bhit Shah, Hyderabad</div>
+      <div>Kutch, Gujarat: Dhamadka, Ajrakhpur, Khavda</div>
+      <div>Barmer, western Rajasthan</div>
+      <div>South Punjab (Saraiki belt), Pakistan</div>
+
+      <div class="rh">Printed by</div>
+      <div>Hindu and Muslim Khatris in workshops run by an <span class="loc">usto</span> (master). Blocks by the Poregars of Radhan</div>
+      <div>Muslim Khatris, who came from Sindh about 400 years ago</div>
+      <div>Khatris, many from Mirpur, Sindh after 1947. Also sold as “Barmer print”</div>
+      <div>Printing community not documented in the sources checked</div>
+
+      <div class="rh">Worn by</div>
+      <div>Almost everyone in Sindh, men and women: turban, shawl, dupatta, even the belt in <span class="loc">malakhro</span> wrestling</div>
+      <div>Muslim Maldhari herders (Jat, Sama, Sumra, Node, Halepotra) as turban, shoulder cloth and lungi</div>
+      <div>Muslim Patel cattle-herders and Muslim potters; adopted by Langha and Manganiyar musicians</div>
+      <div>Saraiki speakers, as a badge of identity on Saraiki Ajrak Day, 6 March</div>
+
+      <div class="rh">Look</div>
+      <div>Only four colours: red, blue, black, white. Double-sided printing survives here</div>
+      <div>Ends dyed red, long sides kept blue. More indigo for summer, more red for winter</div>
+      <div>“Geometric Ajrakh prints in dark shades of blue and red for protection from the sun”</div>
+      <div>Blue and cyan colour schemes, unlike the red-indigo Sindhi cloth</div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: N. Bhavnani, Sindhnamah · Khamir exhibitions · Anokhi Museum via Wandering Silk · Sahapedia · Textiles Committee, GoI (Barmer) · Dawn 2024 · The News 2016 · Barmeri swatch is an illustration</span><span class="pg"></span></div>
+</section>
+
+<!-- 06 RAW MATERIALS -->
+<section class="slide cotton" id="s-mat" data-name="Raw materials">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>04</b> Raw materials</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">Earth, plants, iron and water</h2>
+      <div class="matgrid rise" style="--d:1">
+        <div><h3>Cloth</h3><ul>
+          <li><b>Latha</b>: plain cotton, once hand-spun and handwoven. <span class="loc">Kora latha</span> in Sindh</li>
+          <li>Today also mulmul, modal, Gajji silk, mashru, Chanderi, Kala cotton</li>
+          <li>Cotton takes the colours best</li></ul></div>
+        <div><h3>Mordants</h3><ul>
+          <li><b>Harda</b> (myrobalan, <i>Terminalia chebula</i>): tannin, the first mordant</li>
+          <li><b>Fatakdi</b> (alum): fixes the red</li>
+          <li><b>Lokhand + gud</b> (scrap iron + jaggery): fermented into <span class="loc">kat</span>, the black</li></ul></div>
+        <div><h3>Dyes</h3><ul>
+          <li><b>Indigo</b>: natural, or synthetic today</li>
+          <li><b>Majith</b> (madder) or alizarin, boiled with <b>dhaori</b> flowers</li>
+          <li><b>Haldar</b> (turmeric), <b>dadam</b> (pomegranate), <b>ruharb</b> (rhubarb) for yellow, green, brown</li></ul></div>
+        <div><h3>Resists</h3><ul>
+          <li><b>Chuna + baval no gund</b> (lime + gum arabic): keeps whites white</li>
+          <li><b>Gach</b>: clay, millet flour, alum and gum, a mud resist</li>
+          <li>Sawdust or dung dusted on to stop smudging</li></ul></div>
+        <div><h3>Scouring &amp; pastes</h3><ul>
+          <li>Traditionally <b>gissi</b> (camel dung), soda ash, <b>erandi</b> (castor oil); today often plain water</li>
+          <li><b>Kachuka no lot</b>: tamarind-seed powder that thickens the black and alum pastes</li></ul></div>
+        <div><h3>Water</h3><ul>
+          <li>The Saran river's water suited dyeing and washing</li>
+          <li>Iron in water dulls colours. That is why the craft moved after 2001</li></ul></div>
+      </div>
+      <div class="strip3 rise" style="--d:2">
+        <figure data-img="06b_indigo_powder"></figure>
+        <figure data-img="06c_madder_root"></figure>
+        <figure data-img="06e_scrap_iron_for_black"></figure>
+      </div>
+    </div>
+    <figure data-img="06_natural_dye_materials" class="rise" style="--d:1;height:754px"></figure>
+  </div>
+  <div class="foot"><span class="src">Sources: Karolia &amp; Buch, IJTK 7(1) 2008 (local names) · D'Source, IIT Bombay · Gaatha · Khamir · Anokhi Museum via Wandering Silk · Sahapedia (Bilgrami)</span><span class="pg"></span></div>
+</section>
+
+<!-- 07 TOOLS -->
+<section class="slide indigo" id="s-tools" data-name="Tools">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>04</b> Tools</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">The block is the pen</h2>
+      <p class="small rise" style="--d:1;margin-top:18px;max-width:58ch">Blocks are hand-carved, often in <b>Pethapur</b> near Gandhinagar (some printers now carve their own), from teak (sagwan), sheesham or rohida; sources differ on the wood. A simple block takes 2 days; a fine one 12–15. Brass pins make the tiny dots.</p>
+      <div class="blockroles rise" style="--d:2">
+        <div><b>Rekh</b>Outline block</div>
+        <div><b>Datlo</b>Fills the motif</div>
+        <div><b>Gadh</b>Fills the background</div>
+      </div>
+      <p class="xs rise" style="--d:3;margin-top:14px;opacity:.85">“True ajrakh blocks are square, must match up on all four sides, and also reflect to allow the reverse of the cloth to be printed.” Anokhi Museum</p>
+      <div class="kit rise" style="--d:4">
+        <div><b>Patiya</b>Low printing table padded with jute and cotton</div>
+        <div><b>Tari + chappri</b>Paste tray with a bamboo-and-cloth pad</div>
+        <div><b>Naand / maat</b>Clay indigo vat sunk into the ground</div>
+        <div><b>Rangchul + bhatti</b>Brick tank and furnace for the red boil</div>
+        <div><b>Kundi</b>Tank for the harda bath</div>
+        <div><b>Stepped tanks</b>Ajrakhpur's washing tanks, one level per stage</div>
+      </div>
+    </div>
+    <div class="toolsimgs rise" style="--d:1">
+      <figure data-img="07_carved_wooden_block"></figure>
+      <figure data-img="07b_ajrakh_blocks_pile"></figure>
+      <figure data-img="07c_printing_workshop_tables"></figure>
+      <figure data-img="07d_block_carver_generic"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Gaatha craft archive · Karolia &amp; Buch, IJTK 2008 (tool names) · MAP Academy · Project LooM (Abduljabbar Khatri) · D'Source · Anokhi Museum via Wandering Silk</span><span class="pg"></span></div>
+</section>
+
+<!-- 08 ANATOMY -->
+<section class="slide cotton" id="s-anat" data-name="Motifs: structure">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>05</b> Motifs &amp; patterns</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">How the cloth is built</h2>
+      <svg class="cloth rise" style="--d:1" viewBox="0 0 820 470" role="img" aria-label="Diagram of an ajrakh: a central star field called jaal, borders called wat along the long blue sides, and broad red ends called palland">
+        <rect x="0" y="40" width="820" height="360" fill="#1C1714"/>
+        <rect x="6" y="46" width="130" height="348" fill="#A2291C"/>
+        <rect x="684" y="46" width="130" height="348" fill="#A2291C"/>
+        <g opacity=".55"><rect x="6" y="46" width="130" height="348" fill="url(#p-red)"/><rect x="684" y="46" width="130" height="348" fill="url(#p-red)"/></g>
+        <rect x="142" y="46" width="536" height="34" fill="url(#p-ind)"/>
+        <rect x="142" y="360" width="536" height="34" fill="url(#p-ind)"/>
+        <rect x="142" y="86" width="536" height="268" fill="url(#p-jaal)"/>
+        <g font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="16" letter-spacing="2" fill="#231A14">
+          <line x1="410" y1="220" x2="410" y2="440" stroke="#231A14" stroke-width="1.5"/><circle cx="410" cy="220" r="5" fill="#F6F0E2" stroke="#231A14"/>
+          <text x="410" y="462" text-anchor="middle">JAAL · THE CENTRAL FIELD</text>
+          <line x1="560" y1="63" x2="560" y2="18" stroke="#231A14" stroke-width="1.5"/><circle cx="560" cy="63" r="5" fill="#F6F0E2" stroke="#231A14"/>
+          <text x="560" y="12" text-anchor="middle">WAT · BORDERS (SINDHI)</text>
+          <line x1="71" y1="220" x2="71" y2="440" stroke="#231A14" stroke-width="1.5"/><circle cx="71" cy="220" r="5" fill="#F6F0E2" stroke="#231A14"/>
+          <text x="6" y="462" text-anchor="start">PALAAND (SINDHI) · RED ENDS</text>
+          <line x1="250" y1="377" x2="250" y2="425" stroke="#231A14" stroke-width="1.5"/><circle cx="250" cy="377" r="5" fill="#F6F0E2" stroke="#231A14"/>
+          <text x="250" y="440" text-anchor="middle" font-size="13">BLUE LONG SIDES</text>
+        </g>
+      </svg>
+      <p class="xs rise" style="--d:2;margin-top:10px;color:var(--ink-soft)">Kutch layout per the Anokhi Museum: “The ends of the cloth are dyed red, whilst the longer sides are kept blue.” Varadarajan counted 15 basic Kachchh designs, and there are said to be over 200 traditional combinations.</p>
+    </div>
+    <div>
+      <div class="princ rise" style="--d:2;margin-top:130px">
+        <div><svg aria-hidden="true"><use href="#m-mohar"/></svg><p><b>Mizan: balance and order.</b> “The design square is perfectly divided into quarters and then further divided into sixteen parts.”</p></div>
+        <div><svg aria-hidden="true"><use href="#m-star"/></svg><p><b>No figures.</b> Following Islamic principles, no human or animal forms. Symmetry often radiates from a central star.</p></div>
+        <div><svg aria-hidden="true"><use href="#m-koyaro"/></svg><p><b>Architecture on cloth.</b> The shapes echo “jali windows and trefoil arches” (Khamir).</p></div>
+        <div><svg aria-hidden="true"><use href="#m-riyal"/></svg><p><b>Bipuri.</b> Printed identically on both sides; legend says so herders dressing before dawn always wore the pattern outward.</p></div>
+      </div>
+      <p class="pull rise" style="--d:3">“There is no centre, there is no periphery, and it keeps on expanding without any end.”<small>Dr Lotika Varadarajan, Sahapedia, 2014</small></p>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Karolia &amp; Buch, IJTK 2008 · Gaatha · Anokhi Museum via Wandering Silk · Khamir · Sahapedia (Varadarajan) · JDSSI 2025. Diagram drawn for this deck</span><span class="pg"></span></div>
+</section>
+
+<!-- 09 MOTIF DICTIONARY -->
+<section class="slide indigo" id="s-motif" data-name="Motifs: meanings">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>05</b> Motifs &amp; patterns</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">A vocabulary of the desert</h2>
+      <p class="small rise" style="--d:1;margin-top:14px;max-width:62ch;opacity:.9">Every motif “signifies a particular aspect of nature” (IJTK 2008): food, weather, stars, coins and seals. Most popular in Kutch: kan kharek, riyal, ginni, mifudi, bodi riyal and tavith.</p>
+      <div class="motifs rise" style="--d:2">
+        <div class="mo"><svg aria-hidden="true"><use href="#m-kakar"/></svg><b>Kakar</b><span>Cloud; the trefoil</span><small>V&amp;A · Khamir</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-kharek"/></svg><b>Kharek</b><span>Dates</span><small>IFAM · IJTK</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-badam"/></svg><b>Badam</b><span>Almond</span><small>IFAM · Wikipedia</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-riyal"/></svg><b>Riyal</b><span>Coin; circular star</span><small>IFAM · Gaatha</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-mifudi"/></svg><b>Mifudi</b><span>Raindrops</span><small>IFAM</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-koyaro"/></svg><b>Koyaro</b><span>Spider web</span><small>IFAM · IJTK</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-mohar"/></svg><b>Mohar</b><span>Seal</span><small>Loom Studio · Anokhi</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-jalebi"/></svg><b>Jalebi</b><span>The sweet</span><small>Anokhi Museum</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-champa"/></svg><b>Champakali</b><span>Champa flower bud</span><small>IFAM · The Wire</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-mor"/></svg><b>Morpeech</b><span>Peacock feather</span><small>Loom Studio · The Wire</small></div>
+        <div class="mo"><svg aria-hidden="true"><use href="#m-star"/></svg><b>Star</b><span>Eight points; stars of the night sky</span><small>IFAM · Khamir</small></div>
+        <div class="mo" style="background:transparent;color:var(--resist);border:1.5px dashed rgba(246,240,226,.4)"><span style="grid-column:1/-1;font-size:14.5px">Glyphs are simplified sketches drawn for this deck. Names like <i>tavith</i>, <i>ginni</i> and <i>ishq pech</i> have no documented meaning in the sources.</span></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr 1fr;gap:16px">
+      <figure data-img="09a_motif_stars_indigo" class="rise" style="--d:1"></figure>
+      <figure data-img="09d_motif_star_hexagon" class="rise" style="--d:2"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: International Folk Art Market (Sufiyan Khatri) · V&amp;A IS.6-2007 · Karolia &amp; Buch, IJTK 2008 · Anokhi Museum via Wandering Silk · Gaatha · The Wire · The Loom Studio · Wikipedia (Bilgrami)</span><span class="pg"></span></div>
+</section>
+
+<!-- 10 PROCESS I -->
+<section class="slide cotton proc" id="s-proc1" data-name="Process: prepare">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>06</b> Technique &amp; process</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">Two weeks before the first print</h2>
+      <div class="meter rise" style="--d:1" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="meterlab rise" style="--d:1"><span>Prepare</span><span>Print</span><span>Dye &amp; reveal</span></div>
+      <ol class="stages">
+        <li class="rise" style="--d:2"><span class="no">01</span><div><h3>Saaj <i>Scouring</i></h3><p>The cloth is soaked in camel dung, soda ash and castor oil, kept overnight, half-dried in the sun and soaked again. This repeats 7–8 times “until the cloth foams when rubbed”, then it is washed.</p></div></li>
+        <li class="rise" style="--d:3"><span class="no">02</span><div><h3>Kasanu <i>Harda bath</i></h3><p>Dyed in a cold solution of myrobalan (harda), which turns it yellow and acts as the first mordant. It is dried on both sides and the excess powder is beaten off.</p></div></li>
+      </ol>
+      <p class="small rise" style="--d:4;margin-top:22px;max-width:60ch">“Two weeks can be spent preparing the cloth before printing even begins.” Maiwa. No two Khatri families follow exactly the same sequence, and even the names of pastes differ between lineages.</p>
+    </div>
+    <div class="procimgs" style="grid-template-rows:340px 1fr">
+      <figure data-img="08a_soaking_cloth" class="rise" style="--d:1"></figure>
+      <figure data-img="06d_harda_myrobalan" class="rise" style="--d:2"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: D'Source, IIT Bombay (Saaj, Kasano) · Travels in Textiles, process as told by Dr Ismail Khatri · Karolia &amp; Buch, IJTK 2008 · Maiwa · Anokhi Museum via Wandering Silk</span><span class="pg"></span></div>
+</section>
+
+<!-- 11 PROCESS II -->
+<section class="slide indigo proc" id="s-proc2" data-name="Process: print">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>06</b> Technique &amp; process</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">Printing what the dye must not touch</h2>
+      <div class="meter rise" style="--d:1" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="meterlab rise" style="--d:1"><span>Prepare</span><span>Print</span><span>Dye &amp; reveal</span></div>
+      <ol class="stages">
+        <li class="rise" style="--d:2"><span class="no">03</span><div><h3>Khariyanu <i>Rekh outline</i></h3><p>A resist of lime and gum arabic is printed on both sides to outline everything that will stay white.</p></div></li>
+        <li class="rise" style="--d:3"><span class="no">04</span><div><h3>Kat <i>Iron black</i></h3><p>Scrap iron and jaggery ferment for 1–3 weeks (sources vary), then are thickened with tamarind seed. Printed paste turns black as it meets the harda's tannin.</p></div></li>
+        <li class="rise" style="--d:4"><span class="no">05</span><div><h3>Kan / pa <i>Alum mordant</i></h3><p>Alum paste is printed where red must appear. A fugitive colour is added so the printer can see where to place the block.</p></div></li>
+        <li class="rise" style="--d:5"><span class="no">06</span><div><h3>Gach <i>Mud resist</i></h3><p>Clay, millet flour, alum and gum are printed over the design, dusted with sawdust or dung, and left to dry for 3–4 days.</p></div></li>
+      </ol>
+    </div>
+    <div class="procimgs" style="grid-template-rows:380px 1fr">
+      <figure data-img="08b_printing_with_newspaper_mask" class="rise" style="--d:1"></figure>
+      <figure data-img="08c_resist_paste_vats" class="rise" style="--d:2"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: D'Source, IIT Bombay (Khariyanu, Kat, Gach) · Karolia &amp; Buch, IJTK 2008 (Phulli/Kan) · Anokhi Museum via Wandering Silk (Pa) · Project LooM</span><span class="pg"></span></div>
+</section>
+
+<!-- 12 PROCESS III -->
+<section class="slide cotton proc" id="s-proc3" data-name="Process: dye and reveal">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>06</b> Technique &amp; process</div>
+  <div class="pad" style="grid-template-columns:1fr 640px">
+    <div>
+      <h2 class="rise" style="margin-top:40px">Blue, then red, then light</h2>
+      <div class="meter rise" style="--d:1" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      <div class="meterlab rise" style="--d:1"><span>Prepare</span><span>Print</span><span>Dye &amp; reveal</span></div>
+      <ol class="stages" style="gap:9px">
+        <li class="rise" style="--d:2;padding-bottom:9px"><span class="no">07</span><div><h3>Bodaw <i>Indigo</i></h3><p>Dipped in the sunk vat, the cloth comes out green and “rapidly becomes blue as oxygen meets the dye particles in the fibres”.</p></div></li>
+        <li class="rise" style="--d:3;padding-bottom:9px"><span class="no">08</span><div><h3>Vichharnu <i>Washing</i></h3><p>Washed to clear loose dye, in the river once, in stepped tanks today. Sources differ on how much resist comes off here.</p></div></li>
+        <li class="rise" style="--d:4;padding-bottom:9px"><span class="no">09</span><div><h3>Rang <i>Red boil</i></h3><p>Boiled 2–4 hours with madder or alizarin and dhaori flowers. Alum areas turn red, iron turns black, and the whites appear.</p></div></li>
+        <li class="rise" style="--d:5;padding-bottom:9px"><span class="no">10</span><div><h3>Minakari <i>“Double work”</i></h3><p>Gach, indigo and red are repeated for deeper, brighter colour.</p></div></li>
+        <li class="rise" style="--d:6;padding-bottom:9px"><span class="no">11</span><div><h3>Tapano <i>Sun bleaching</i></h3><p>Soaked in camel dung and laid in the sun for about 3 days to clear the whites. Recorded by the Anokhi Museum; called <span class="loc">tapai</span> in Sindh.</p></div></li>
+      </ol>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:250px 250px 1fr;gap:14px">
+      <figure data-img="08d_indigo_vat_stirring" class="rise" style="--d:1"></figure>
+      <figure data-img="08e_madder_boiling" class="rise" style="--d:2;grid-row:span 2"></figure>
+      <figure data-img="08f_washing_tanks" class="rise" style="--d:3"></figure>
+      <figure data-img="08i_ajrakh_process_sample_book_VA" class="rise" style="--d:4;grid-column:span 2"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: D'Source · Travels in Textiles (Bodaw) · Karolia &amp; Buch, IJTK 2008 · Anokhi Museum via Wandering Silk (Tapano) · Sahapedia (Bilgrami) · V&amp;A IS.7-2007, Dr Ismail Khatri's stage sampler</span><span class="pg"></span></div>
+</section>
+
+<!-- 13 CULTURE I -->
+<section class="slide indigo" id="s-cult1" data-name="Cultural importance: life">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>07</b> Cultural importance</div>
+  <div class="pad">
+    <div style="display:grid;grid-template-rows:1fr 1fr;gap:16px">
+      <figure data-img="05d_kutch_elder_ajrakh_turban" class="rise" style="--d:1"></figure>
+      <figure data-img="05e_kutch_man_ajrakh_shoulder_cloth" class="rise" style="--d:2"></figure>
+    </div>
+    <div>
+      <h2 class="rise" style="margin-top:40px">Worn from the cradle</h2>
+      <p class="lede rise" style="--d:1;margin-top:18px;font-size:22px">For pastoral communities ajrakh was never decoration. It was caste dress, a turban (<span class="loc">pagdi</span>), a lungi and a shoulder cloth, and a sign of who you are.</p>
+      <div class="life rise" style="--d:2">
+        <div><h3>Newborns</h3><p>Used “as a hammock for infants” in Sindh, and as <q>linings in cradles for kids</q> among the Maldharis.</p></div>
+        <div><h3>Weddings</h3><p>“An Ajrakh turban was a gift for the Maldhari groom at the time of marriage.” Given for Eid and to bridegrooms.</p></div>
+        <div><h3>Every age</h3><p>Named cloths by age, from <span class="loc">paniyu</span> for boys under six to <span class="loc">bepoti</span> for elders. Khatri women's prints changed at marriage and widowhood.</p></div>
+        <div><h3>Every season</h3><p>More indigo in summer because it is cooling, more red in winter for warmth. Herders also used it as a bundle for the road.</p></div>
+      </div>
+      <p class="xs rise" style="--d:3;margin-top:18px;opacity:.8">Traditionally worn by Muslim Maldharis; Khamir and the Kachchh district site also name Rabaris and Ahirs.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Khamir exhibitions · District Kachchh, Govt of Gujarat · Arab News 2013 · Gaatha · Homegrown (citing “Made in Kachchh”) · Edwards 2016</span><span class="pg"></span></div>
+</section>
+
+<!-- 14 CULTURE II -->
+<section class="slide madderside" id="s-cult2" data-name="Cultural importance: identity">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>07</b> Cultural importance</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">…to the grave, and to the nation</h2>
+      <p class="lede rise" style="--d:1;margin-top:18px;font-size:23px">“Ajrak is literally used in Sindh from the cradle to the grave … a gift item and a token of respect to honor a guest.” Arab News, 2013</p>
+      <div class="marks rise" style="--d:2">
+        <div><b>Honour</b><span>Draping a guest in ajrak, with the Sindhi <span style="font-style:italic">topi</span>, is a mark of honour. Pakistan's heads of state and dignitaries wear it to show solidarity with Sindh.</span></div>
+        <div><b>Culture Day</b><span>First held on 6 December 2009 as Sindhi Topi Day. Now Sindhi Culture Day, on the first Sunday of December, when people wear ajrak and topi.</span></div>
+        <div><b>6 March</b><span>Saraiki Culture Day; attendees dress in blue Saraiki ajrak (Dawn, 2024).</span></div>
+        <div><b>2025</b><span>Sindh introduces ajrak-design vehicle number plates.</span></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px">
+      <figure data-img="05c_sindhi_culture_day" class="rise" style="--d:1;grid-column:span 2"></figure>
+      <figure data-img="05_sindhi_ajrak_honour_gift" class="rise" style="--d:2"></figure>
+      <figure data-img="05b_ajrak_and_sindhi_topi_worn" class="rise" style="--d:3"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Arab News 2013 · Express Tribune 2020 · Wikipedia “Sindhi Cultural Day” · Dawn 2024 (x2) · Dawn 2025 · Business Recorder 2025</span><span class="pg"></span></div>
+</section>
+
+<!-- 15 CONTEMPORARY -->
+<section class="slide cotton" id="s-now" data-name="Contemporary relevance">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>08</b> Contemporary relevance</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">From caste dress to catwalk</h2>
+      <div class="chips rise" style="--d:1"><span>Sarees</span><span>Dupattas</span><span>Stoles</span><span>Kurtas</span><span>Shirts</span><span>Jackets</span><span>Dresses</span><span>Bags</span><span>Tapestries</span><span>Bedcovers</span><span>Cushions</span><span>Rugs</span></div>
+      <div class="chips fab rise" style="--d:2"><span>Gajji silk</span><span>Mashru</span><span>Modal</span><span>Chanderi</span><span>Kota</span><span>Kala cotton</span><span>Khadi</span><span>Linen</span></div>
+      <div class="moments rise" style="--d:3">
+        <div><b>Mar 2025</b><span>Lakmé Fashion Week × FDCI: Somaiya Kala Vidya artisan-designers Zaid Khatri (<i>Ajrakh Gharana</i>) and Mubassirah Khatri (<i>Elysian</i>).</span></div>
+        <div><b>Oct 2025</b><span>LFW × FDCI GenNext: Mohammed Anas Sheikh's 23°N 69°E, natural-dyed ajrakh on Kala cotton.</span></div>
+        <div><b>May 2026</b><span><i>Ajrakh: The Blue Gold</i>, National Crafts Museum × FDCI, New Delhi, with Anju Modi, Rajesh Pratap Singh, Khalid Amin Khatri and others.</span></div>
+        <div><b>The catch</b><span>“Ajrakh is so much in demand that it is endangered.” Judy Frater. About 13 litres of water per metre of cloth.</span></div>
+      </div>
+    </div>
+    <div class="collage rise" style="--d:1">
+      <figure data-img="10a_designer_ajrak_jacket_RPS_VA" class="contain"></figure>
+      <figure data-img="10d_ajrakh_stole_tassels"></figure>
+      <figure data-img="10e_ajrakh_bolster_home"></figure>
+      <figure data-img="10f_ajrakh_bedspread"></figure>
+      <figure data-img="10b_contemporary_stole_khalid_khatri_VA" class="contain"></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Edwards 2016 (title) · The Week 2025 · Outlook Luxe 2025 · Retropop Lifestyle 2026 · Shefalee Vasudev 2020 · The Federal 2025 · V&amp;A IS.27-2012 (digitally printed jacket)</span><span class="pg"></span></div>
+</section>
+
+<!-- 16 SUPPORT -->
+<section class="slide indigo" id="s-support" data-name="Resource and support centres">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>09</b> Resource &amp; support centres</div>
+  <div class="pad">
+    <h2 class="rise" style="margin-top:40px">Who keeps the craft alive</h2>
+    <div class="grid rise" style="--d:1">
+      <div class="org key"><span class="where">Kukma, Kutch · 2005</span><h3>Khamir</h3><p>Water surveys and a pilot effluent-treatment plant for printers; new blocks and raw materials; exhibitions and an online shop.</p></div>
+      <div class="org key"><span class="where">Adipur, Kutch · 2014</span><h3>Somaiya Kala Vidya</h3><p>Design and business school for artisans (Kala Raksha Vidhyalaya from 2005). Took ajrakh artisan-designers to Lakmé Fashion Week in 2025.</p></div>
+      <div class="org key"><span class="where">Ajrakhpur · GI holder</span><h3>Ajarakhpur Hastkala Vikas Sangathan</h3><p>The artisans' body that applied for and holds the “Kutch Ajrakh” GI.</p></div>
+      <div class="org"><span class="where">Ajrakhpur · 2016</span><h3>Shrujan LLDC</h3><p>Living &amp; Learning Design Centre: craft museum, library and artisan studio inside the ajrakh village.</p></div>
+      <div class="org"><span class="where">New Delhi</span><h3>Office of the DC (Handicrafts)</h3><p>Ministry of Textiles. National Awards and Shilp Guru honours (Abdul Razak Khatri, ajrakh); co-opened <i>The Blue Gold</i>.</p></div>
+      <div class="org"><span class="where">Pragati Maidan · 1956</span><h3>National Crafts Museum &amp; Hastkala Academy</h3><p>Holds ajrakh; hosted <i>Ajrakh: The Blue Gold</i> from 18 May 2026.</p></div>
+      <div class="org"><span class="where">Chennai</span><h3>Crafts Council of India</h3><p>Kamala Awards to Abdulrazak Khatri (2021) and Abdul Jabar Khatri (2022).</p></div>
+      <div class="org"><span class="where">Vancouver, Canada</span><h3>Maiwa &amp; Maiwa Foundation</h3><p>The Foundation funded dye-works relocation and water treatment after 2001; Maiwa Handprints has partnered the Khatris for 25+ years.</p></div>
+    </div>
+    <p class="xs rise" style="--d:2;margin-top:16px;opacity:.8">Also: Garvi Gurjari (Gujarat state emporium, 1973) · Craftmark certification (AIACA) · Gaatha, one of the first online sellers from 2012 · Sindh Small Industries Corporation, Pakistan (1972)</p>
+  </div>
+  <div class="foot"><span class="src">Sources: khamir.org · somaiya-kalavidya.org · IP India GI 1050 · shrujanlldc.org · MoMA post 2025 · Wikipedia “Shilp Guru” · Crafts Council of India · Garland Magazine 2019 · Retropop 2026 · Fabindia blog 2025</span><span class="pg"></span></div>
+</section>
+
+<!-- 17 DESIGNERS -->
+<section class="slide cotton" id="s-design" data-name="Designers">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>10</b> Designers working on ajrakh</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">The makers are the designers</h2>
+      <p class="lab rise" style="--d:1;margin-top:20px">Khatri artisan-designers</p>
+      <div class="people rise" style="--d:2">
+        <div class="person"><b>Dr Ismail Mohammed Khatri</b><span>Led the move to Ajrakhpur; honorary doctorate, De Montfort University, 2003; work in the V&amp;A.</span></div>
+        <div class="person"><b>Sufiyan Ismail Khatri</b><span>“Tenth in line”; employs about 40 people; shows at the International Folk Art Market, Santa Fe.</span></div>
+        <div class="person"><b>Abduljabbar M. Khatri</b><span>National Craft Award 2003, UNESCO Seal of Excellence 2008, World Crafts Council award 2014.</span></div>
+        <div class="person"><b>Junaid Ismail Khatri</b><span>His workshop printed Good Earth's <i>Sindhu</i> menswear (2019).</span></div>
+        <div class="person"><b>Khalid Amin Khatri</b><span>Contemporary ajrakh art; V&amp;A “Haji Ali” stole; solo show in Mumbai, Aug–Sep 2026.</span></div>
+        <div class="person"><b>Abdul Razak Khatri</b><span>Shilp Guru for ajrakh hand-block printing; Crafts Council of India Kamala Award, 2021.</span></div>
+        <div class="person"><b>Zaid Khatri</b><span>Collection <i>Ajrakh Gharana</i>; Lakmé Fashion Week × FDCI at 21.</span></div>
+        <div class="person"><b>Mubassirah Khatri</b><span>Label <i>Elysian</i>; among the first women ajrakh artisans; Forbes India 30 Under 30, 2026.</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="portraits rise" style="--d:1;margin-top:40px">
+        <figure data-img="11b_ismail_khatri"></figure>
+        <figure data-img="11a_sufiyan_ismail_khatri"></figure>
+      </div>
+      <p class="lab rise" style="--d:2;margin-top:22px">Studio designers &amp; brands</p>
+      <div class="brands rise" style="--d:3">
+        <div><b>Vraj:bhoomi</b> Bhoomi Dani &amp; Priyam Shah, Ahmedabad; “Their claim to fame is Ajrakh”.</div>
+        <div><b>Anita Dongre</b> Kutch crafts collection with the artisans of Bhuj (2021).</div>
+        <div><b>Good Earth</b> <i>Sindhu</i> and <i>Sindhuri</i> collections.</div>
+        <div><b>Rajesh Pratap Singh · Anju Modi</b> Ajrakh sarees on Kota; ajrakh on linen (<i>Blue Gold</i>, 2026).</div>
+        <div><b>Abraham &amp; Thakore · Péro · 11.11</b> Named by ELLE India (2026) for new approaches.</div>
+        <div><b>Zaheer Abbas (Pakistan)</b> “Ajrakistan”: skirts, tunics and top hats (Dawn, 2016).</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: Warwick oral history · Maiwa · Khamir · Islamic Voice · Global InCH · ROM · Caleidoscope 2026 · Crafts Council of India · The Week 2025 · Forbes India 2026 · Business Standard 2017 · Luxebook 2021 · ELLE India 2026</span><span class="pg"></span></div>
+</section>
+
+<!-- 18 FOUR PILLARS -->
+<section class="slide indigo" id="s-four" data-name="GI, livelihood, global, market">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>11</b> Four things that matter now</div>
+  <div class="pad">
+    <h2 class="rise" style="margin-top:40px">Protected, practised, prized</h2>
+    <div class="quad">
+      <div class="q rise" style="--d:1"><div class="k"><span class="lab">GI tag</span><span class="num">1050</span><small>GI application no.</small></div><div><h3>“Kutch Ajrakh Print of Gujarat”</h3><ul>
+        <li>Filed 31 Jan 2023; journal 19 Dec 2023; certificate <b>22 Apr 2024</b></li>
+        <li>Applicant: Ajarakhpur Hastkala Vikas Sangathan · Classes 24 &amp; 25</li>
+        <li>95 authorised users. Only Ajrakhpur and Dhamadka printers may call it “Kutch Ajrakh”</li></ul></div></div>
+      <div class="q rise" style="--d:2"><div class="k"><span class="lab">Livelihood</span><span class="num">~100</span><small>Khatri families in Ajrakhpur &amp; Dhamadka</small></div><div><h3>A family trade, ten generations deep</h3><ul>
+        <li>Skills passed father to son for 9–11 generations; women now print, finish and lead labels</li>
+        <li>“Even the lowest-earning artisan makes up to Rs 1,000 a day” (Sufiyan Khatri, c. 2016)</li>
+        <li>Threats: water scarcity, iron in wells, chemical dyes, screen-print copies</li></ul></div></div>
+      <div class="q rise" style="--d:3"><div class="k"><span class="lab">Global</span><span class="num">17</span><small>V&amp;A, London records matching “ajrakh”</small></div><div><h3>From medieval Egypt to Santa Fe</h3><ul>
+        <li>Museum holdings: V&amp;A, Ashmolean, Textile Museum (Washington)</li>
+        <li>ROM's touring <i>Global Threads</i> at the Bowers Museum, Dec 2025–Apr 2026</li>
+        <li>Khatri workshops in Canada, the UK, the US and Japan; post-GI orders from Uzbekistan, USA, France</li></ul></div></div>
+      <div class="q rise" style="--d:4"><div class="k"><span class="lab">Market</span><span class="num">2–10×</span><small>hand-block over imitation: about 2–5× for Indian fabric, 5–10× at one Sindh retailer</small></div><div><h3>What the real thing costs</h3><ul>
+        <li>Hand-block cotton fabric ₹300–1,250/m (silk up to ₹3,290); sarees ₹3,000–22,000</li>
+        <li>A 2.5 m dupatta sells for ₹3,000–7,000 and costs ₹2,000–2,500 to make</li>
+        <li>Imitation “ajrakh print” sells online for ₹150–300/m</li></ul></div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: IP India GI record 1050 · The Federal 2025 · Khamir · Islamic Voice · V&amp;A API · Global InCH · Bowers Museum 2025 · Garland 2019 · live retail listings, 27 Sep 2026</span><span class="pg"></span></div>
+</section>
+
+<!-- 19 MARKET -->
+<section class="slide cotton" id="s-market" data-name="Market and value">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>11</b> Market &amp; value</div>
+  <div class="pad">
+    <div>
+      <h2 class="rise" style="margin-top:40px">Price ranges, real vs imitation</h2>
+      <div class="legend rise" style="--d:1"><span><i style="background:var(--indigo)"></i>Hand-block / natural-dye listings</span><span></span></div>
+      <svg id="chart" class="rise" style="--d:2" viewBox="0 0 1070 560" role="img" aria-label="Range chart of ajrakh prices in rupees on a log scale, genuine versus imitation, by product"></svg>
+      <p class="xs" style="margin-top:6px;color:var(--ink-soft)">About 70 live listings checked on 27 Sep 2026: Khamir, Gaatha, iTokri, Okhai, Craftroots, Ethnics of Kutch, EkBanni, Amounee, Fabindia. Imitation = Amazon.in “ajrakh print” listings with no dye claim (the imitation saree range includes a satin-viscose listing). Log scale.</p>
+    </div>
+    <div class="side rise" style="--d:3">
+      <div style="margin-top:44px"><b class="big">₹7 → ₹1,000+</b>An ajrakh piece cost Rs 7 in 1975, and Rs 1,000–1,500 when Sahapedia documented it.</div>
+      <div><b class="big">PKR 8,500–19,000</b>Hand-block, natural-dye Sindhi ajrak at Sindh Crafts, against PKR 1,400–3,000 for table- or screen-printed ones.</div>
+      <div><b class="lab" style="display:block;margin-bottom:4px">How to spot the real thing</b>
+        <ul class="spot">
+          <li>Printed on both sides, near-identical front and back</li>
+          <li>Slight irregularities from hand placement</li>
+          <li>Natural-dye depth; stars in bright white</li>
+          <li>“If you find a fabric being sold at unrealistically low rates, it is most certainly a fake.” iTokri</li>
+        </ul></div>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Sources: retailer listings (see references) · The Federal 2025 · Sahapedia · Sindh Crafts · iTokri “Real vs Fake Ajrakh” · Farida Gupta</span><span class="pg"></span></div>
+</section>
+
+<!-- 20 CONCLUSION -->
+<section class="slide indigo" id="s-end" data-name="Conclusion">
+  <div class="bg"><img alt="" data-src="01b_hero_ajrakh_cloth_spread"></div>
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-ind)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>12</b> Conclusion</div>
+  <div class="pad">
+    <h2 class="rise">A cloth that keeps the sky, and a people</h2>
+    <p class="lede rise" style="--d:1">Ajrakh has survived migration, Partition, synthetic dyes and an earthquake because it is more than a print. It is a way of knowing water, plants and time, held by a few Khatri families and worn as identity from Sindh to Kutch.</p>
+    <div class="threads rise" style="--d:2">
+      <div><b>Keep the method</b>Natural dyes and hand-block resist printing make it ajrakh, not the look. Double-sided work is the traditional ideal.</div>
+      <div><b>Credit the maker</b>GI protection works only if buyers and designers name the artisans.</div>
+      <div><b>Mind the water</b>Its future depends on clean water as much as on demand.</div>
+    </div>
+  </div>
+  <figcaption class="credit-end"></figcaption>
+  <div class="foot"><span>Ajrakh · Prisha Palney</span><span class="pg"></span></div>
+</section>
+
+<!-- 21 REFERENCES -->
+<section class="slide cotton" id="s-refs" data-name="References">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>13</b> References</div>
+  <div class="pad"><h2 style="margin-top:40px;font-size:56px">References</h2></div>
+  <div class="refs">
+    <h4>Scholarly &amp; museum</h4>
+    <p>Edwards, E. (2016). Ajrakh: From Caste Dress to Catwalk. <i>Textile History</i> 47(2). <a href="https://doi.org/10.1080/00404969.2016.1211436">doi.org/10.1080/00404969.2016.1211436</a></p>
+    <p>Karolia, A. &amp; Buch, H. (2008). Ajarkh, the resist printed fabric of Gujarat. <i>Indian Journal of Traditional Knowledge</i> 7(1), 93–97. <a href="https://nopr.niscpr.res.in/bitstream/123456789/578/1/IJTK%207(1)%20(2008)%2093-97.pdf">nopr.niscpr.res.in</a></p>
+    <p>Barnes, R. (1997). <i>Indian Block-Printed Textiles in Egypt</i>. Ashmolean Museum. <a href="https://jameelcentre.ashmolean.org/collection/7/10236/10316">jameelcentre.ashmolean.org</a> · <a href="https://jameelcentre.ashmolean.org/collection/6/1272/1274">Indian printed cottons</a></p>
+    <p>Victoria and Albert Museum, ajrakh records IS.216-1883, IS.5/6/7/9-2007, IS.8-2015, IS.27-2012. <a href="https://collections.vam.ac.uk/item/O455479/">collections.vam.ac.uk</a></p>
+    <p>Crafts Museum Delhi / Google Arts &amp; Culture, “Ajrakh: Harmony at Repetition”. <a href="https://artsandculture.google.com/story/ajrakh-harmony-at-repetition-crafts-museum-delhi/xwWhhrDWlhUA8A?hl=en">artsandculture.google.com</a></p>
+    <p>Ghaffor, Hafeez &amp; Tufail (2025). Ajrak Motifs Through the Lens of Geometry. <i>JDSSI</i> 3(4). <a href="https://journals.michelangelo-scholar.com/index.php/jdssi/article/download/41/41">journal link</a></p>
+    <p>Sahapedia: M. Khan, “Ajrakh: An Introduction” <a href="http://www.sahapedia.org/ajrakh-introduction-0">link</a>; L. Varadarajan interview <a href="http://www.sahapedia.org/all-about-ajrakh">link</a>; N. Bilgrami, “The Sacred Cloth of Sindh” <a href="http://www.sahapedia.org/ajrak-the-sacred-cloth-of-sindh">link</a></p>
+    <p>University of Warwick, Oral History Project: Dr Ismail Khatri. <a href="https://warwick.ac.uk/fac/arts/history/ghcc/eac/oralhistoryproject/resources/drismailkhatri">warwick.ac.uk</a></p>
+    <p>Bhavnani, N. (2018). <i>Sindhnamah</i>, excerpt via Shefalee Vasudev. <a href="https://www.shefaleevasudev.in/the-ajrak-of-sindh/">shefaleevasudev.in</a></p>
+    <p>Wikipedia: <a href="https://en.wikipedia.org/wiki/Ajrak">Ajrak</a> · <a href="https://en.wikipedia.org/wiki/Priest-King_(sculpture)">Priest-King</a> · <a href="https://en.wikipedia.org/wiki/Saraiki_ajrak">Saraiki ajrak</a> · <a href="https://en.wikipedia.org/wiki/Sindhi_Cultural_Day">Sindhi Cultural Day</a> · <a href="https://en.wikipedia.org/wiki/Shilp_Guru">Shilp Guru</a></p>
+    <p>Royal Ontario Museum, Chintz &amp; the Khatri family. <a href="https://www.rom.on.ca/magazine/innovating-indian-chintz-face-changing-environmental-conditions">rom.on.ca</a> · Bowers Museum, <i>Global Threads</i>. <a href="https://www.bowers.org/images/pdf/Global_Threads_Release.pdf">bowers.org</a></p>
+    <h4>Craft organisations &amp; design archives</h4>
+    <p>Khamir: <a href="https://khamir.org/crafts/ajrakh-blockprint">Ajrakh Blockprint</a> · <a href="https://exhibitions-khamir.org/ajrakh/khatris-community/">Khatris &amp; Community</a> · <a href="https://exhibitions-khamir.org/ajrakh/adapting">Adapting</a> · <a href="https://khamir.org/artisans/sufiyan-ismail-khatri-0">Sufiyan Khatri</a></p>
+    <p>D'Source, IIT Bombay: <a href="https://www.dsource.in/resource/ajrakh-printing/ajrakh-process/stages-dyeing-and-printing">Stages of dyeing and printing</a> · <a href="https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction">Ajrakh Printing, Ajrakhpur</a></p>
+    <p>Gaatha: <a href="https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/">Ajrakh Printing Ajrakhpur</a> · <a href="https://gaatha.com/ajrak/">Ajrak</a> · <a href="https://gaatha.org/Craft-of-India/block-carving-pethapur/">Block carving, Pethapur</a></p>
+    <p>House of Wandering Silk, “Textile Guide: Ajrakh” (from Anokhi Museum, 2007). <a href="https://www.wanderingsilk.org/post/2016/07/26/textiles-360-ajrakh">wanderingsilk.org</a></p>
+    <p>Clifford, R. Process according to Ismail Mohammed Khatri, Travels in Textiles. <a href="https://web.archive.org/web/2020/http://travelsintextiles.com/the-process-of-ajrakh-block-printing-according-to-ismail-mohammed-khatri-ajrakhpur/">archive</a></p>
+    <p>MAP Academy, “Ajrakh”. <a href="https://web.archive.org/web/20251213043758/https://mapacademy.io/article/ajrakh/">archive</a> · The Loom Studio, “All about Ajrakh” <a href="https://www.theloomstudiolifestyle.com/post/all-about-ajrakh">link</a> · Project LooM, Part 5. <a href="https://projectloom.shobanarayan.com/ajrakhs-amazing-ecosystem/">link</a></p>
+    <p>International Folk Art Market, Sufiyan Ismail Khatri. <a href="https://folkartmarket.org/ifamartiststories/sufiyan-ismail-khatri">folkartmarket.org</a> · Global InCH, Abduljabbar M. Khatri. <a href="https://globalinch.org/contributor/abduljabbar-m-khatri/">globalinch.org</a></p>
+    <p>Maiwa <a href="https://maiwa.com/pages/ajrakh">Ajrakh</a> · <a href="https://maiwa.com/blogs/maiwa_news/still-in-print-film-lecture-by-charllotte-kwon-and-tim-mclaughlin">Still in Print</a> · Garland Magazine 2019 <a href="https://garlandmag.com/article/maiwa/">link</a></p>
+    <p>Somaiya Kala Vidya <a href="https://www.somaiya-kalavidya.org/en/about-us">about</a> · J. Frater, TSA 2020 <a href="https://textilesocietyofamerica.org/10475/the-emergence-of-artisan-designers-in-kutch-india">link</a> · Shrujan LLDC <a href="https://shrujanlldc.org/">shrujanlldc.org</a> · Crafts Council of India <a href="https://www.craftscouncilofindia.in/awards.html">awards</a></p>
+    <h4>Government</h4>
+    <p>IP India, GI Registry, Application 1050. <a href="https://search.ipindia.gov.in/GIRPublicSearch/Application/Details/1050">search.ipindia.gov.in</a> · <a href="https://ipindia.gov.in/frontend/pdf/gi/registered/State_wise_Registered_GI_of_India.pdf">State-wise GI list</a></p>
+    <p>Textiles Committee, GoI, “Ethnic Printing Clusters: Sanganer, Bagru and Barmer”. <a href="https://www.txcindia.gov.in/html/B_Ethnic%20Printing%20clusters.pdf">txcindia.gov.in</a></p>
+    <p>District Kachchh, Govt of Gujarat, Handicraft. <a href="https://kachchh.nic.in/handicraft/">kachchh.nic.in</a> · Gujarat Tourism, Ajrakh. <a href="https://gujarattourism.com/handicrafts/ajrakh.html">link</a></p>
+    <h4>News &amp; magazines</h4>
+    <p>The Federal (30 Oct 2025), Kutch Ajrakh GI &amp; Rann Utsav. <a href="https://thefederal.com/category/the-eighth-column/ajrakh-kutch-ajrakh-gujarat-gi-tag-rann-utsav-traditional-hand-block-printing-213883">link</a></p>
+    <p>Arab News (2013) <a href="https://www.arabnews.pk/news/487096">link</a> · The Hindu (2017) <a href="https://www.thehindu.com/society/history-and-culture/the-art-of-ajrakh/article18514592.ece">link</a> · The News (2016) <a href="https://www.thenews.com.pk/print/167091-Traditional-ajrak-making-revives-in-Sindh">link</a> · Express Tribune (2020) <a href="https://tribune.com.pk/article/97107/the-problem-with-shahbaz-gills-ajrak-comments">link</a></p>
+    <p>Dawn: Saraiki Culture Day (2024) <a href="https://www.dawn.com/news/1819682">link</a> · Sindhi Culture Day (2024) <a href="https://www.dawn.com/news/1876096">link</a> · Number plates (2025) <a href="https://www.dawn.com/news/1952443">link</a> · Ajrakistan (2016) <a href="https://www.dawn.com/news/1269354">link</a></p>
+    <p>Retropop Lifestyle (20 May 2026), <i>Ajrakh: The Blue Gold</i>. <a href="https://www.retropoplifestyle.com/ajrakh-blue-gold/">link</a> · ELLE India (2026) <a href="https://elle.in/fashion/ajrakh-continues-to-shape-indian-fashion-12123639">link</a></p>
+    <p>The Week (Mar 2025) <a href="https://www.theweek.in/leisure/lifestyle/2025/03/29/lakme-fashion-week-x-fdci-when-children-of-kutch-artisans-put-together-a-brilliant-fashion-show.html">link</a> · Forbes India 30U30 (2026) <a href="https://www.forbesindia.com/article/30-under-30-2026/the-woman-whos-breaking-barriers-by-design/2990149/1">link</a> · Outlook Luxe (Oct 2025) <a href="https://luxe.outlookindia.com/fashion-beauty/couture/lakme-fashion-week-x-fdci-runway-highlights-rooted-in-craft-sustainability-handmade-india-and-star-power">link</a></p>
+    <p>Shefalee Vasudev (2020), Khatri and Khatri. <a href="https://www.shefaleevasudev.in/khatri-and-khatri-the-first-families-of-ajrakh/">link</a> · Business Standard (2017) Vraj:bhoomi <a href="https://www.business-standard.com/article/companies/traditional-is-hip-again-vraj-bhoomi-blends-new-styles-with-ajrakh-pattern-117070800002_1.html">link</a> · Luxebook (2021) <a href="https://www.luxebook.in/anita-dongres-new-collection-celebrates-traditional-kutchi-crafts/">link</a></p>
+    <p>Islamic Voice, Artisans of Ajrakhpur <a href="https://islamicvoice.com/arts-and-culture/the-artisans-of-ajrakhpur/">link</a> · Caleidoscope (2026) <a href="https://caleidoscope.in/art-design/reimagining-ajrakh-art-at-47-a-mumbai-showcases-khalid-amin-khatris-landmark-solo-debut">link</a> · Homegrown <a href="https://homegrown.co.in/homegrown-voices/ajrakh-the-textile-that-acted-as-a-communal-identification-code-among-kutchi-women">link</a> · The Wire <a href="https://thewire.in/the-arts/ajrakh-crafts-rising-demand-gujarat-bhuj-kutch">link</a></p>
+    <h4>Price listings (checked 27 Sep 2026)</h4>
+    <p><a href="https://shop.khamir.org/">Khamir shop</a> · <a href="https://shop.gaatha.com/">Gaatha shop</a> · <a href="https://www.itokri.com/">iTokri</a> · <a href="https://www.okhai.org/">Okhai</a> · <a href="https://www.craftroots.com/">Craftroots</a> · <a href="https://ethnicsofkutch.com/">Ethnics of Kutch</a> · <a href="https://www.ekbanni.com/">EkBanni</a> · <a href="https://amounee.com/">Amounee</a> · <a href="https://www.fabindia.com/">Fabindia</a> · <a href="https://www.amazon.in/">Amazon.in</a> · <a href="https://sindhcrafts.com/types-of-ajraks/">Sindh Crafts</a> · <a href="https://itokri.com/blogs/craft-masala-by-itokri/real-vs-fake-ajrakh-a-simple-identification-guide">iTokri, Real vs Fake</a></p>
+  </div>
+  <div class="foot"><span>Ajrakh · Prisha Palney</span><span class="pg"></span></div>
+</section>
+
+<!-- 22 IMAGE CREDITS -->
+<section class="slide cotton" id="s-credits" data-name="Image credits">
+  <svg class="wat top" aria-hidden="true"><rect y="0" width="100%" height="3" fill="#1C1714"/><rect y="3" width="100%" height="24" fill="url(#p-red)"/><rect y="27" width="100%" height="3" fill="#1C1714"/></svg>
+  <div class="tag"><b>13</b> References</div>
+  <div class="pad"><h2 style="margin-top:40px;font-size:56px">Image credits</h2></div>
+  <div class="credits" id="creditList"></div>
+  <div class="foot"><span class="src">Commons images reused under their stated licences. V&amp;A, D'Source, Gaatha and Khamir images © their owners, used here for non-commercial educational reference.</span><span class="pg"></span></div>
+</section>
+
+</div>
+
+<nav id="ui" aria-label="Slide controls">
+  <button id="prev" aria-label="Previous slide">‹</button>
+  <span id="count" aria-live="polite">01 / 22</span>
+  <div id="prog" aria-hidden="true"><i></i></div>
+  <button id="next" aria-label="Next slide">›</button>
+  <button id="fs" aria-label="Toggle full screen">Full screen</button>
+</nav>
+<div id="hint">← → to move · F for full screen</div>
+
+<script>
+// Image credits: every photo in the deck, with where it came from.
+const IMG = {
+  "01_hero_block_printing_hands": ["Printing with a carved block, Ajrakhpur", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "01b_hero_ajrakh_cloth_spread": ["Artisans hold up a full ajrakh", "Visdaviva, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Craft.jpeg"],
+  "02_priest_king_trefoil_shawl": ["“Priest-King” (cast), trefoil cloak", "Umair Shaikh, Wikimedia Commons", "CC BY 2.5", "https://commons.wikimedia.org/wiki/File:King_Priest,_Pakistan.jpg"],
+  "04_sindhi_ajrak_red_black": ["Sindhi ajrak", "Ahub1988, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak.jpg"],
+  "04b_sindhi_ajrak_thatta_1882_VA": ["Ajrakh from Thatta, Sindh, c.1882 (IS.216-1883)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O455479/"],
+  "04c_kutchi_ajrakh_shawl_VA": ["Ajrakh shawl, Ismail M. Khatri, 2006 (IS.5-2007)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O132496/"],
+  "04d_saraiki_ajrak_blue": ["Saraiki ajrak", "Saraik Ningar, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Saraike_Ajrak.jpg"],
+  "05_sindhi_ajrak_honour_gift": ["Honouring a guest with ajrak, Sindh", "DrShoukatrind, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Sindhi_ajrak.jpg"],
+  "05b_ajrak_and_sindhi_topi_worn": ["Gift of ajrak and Sindhi topi", "Gunnery Sgt. Bryce Piper, Wikimedia Commons", "Public domain", "https://commons.wikimedia.org/wiki/File:Person_wearing_Sindhi_ajrak.jpg"],
+  "05c_sindhi_culture_day": ["Sindhi Cultural Day 2019, Sindh Museum, Hyderabad", "JogiAsad, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Sindhi_Cultural_Day_2019_celebrations_at_Sindh_museum_Hyderabad,_Sindh.jpg"],
+  "05d_kutch_elder_ajrakh_turban": ["Kutchi elder with ajrakh turban and shoulder cloth", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "05e_kutch_man_ajrakh_shoulder_cloth": ["Ajrakh worn around head and shoulders, Kutch", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "06_natural_dye_materials": ["Natural dye and mordant materials on ajrakh", "Visdaviva, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Craft_Natural_dye_products.jpeg"],
+  "06b_indigo_powder": ["Indigo", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "06c_madder_root": ["Madder", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "06d_harda_myrobalan": ["Dried fruit, likely harda (myrobalan)", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "06e_scrap_iron_for_black": ["Scrap iron for the black dye", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "07_carved_wooden_block": ["Carved wooden ajrakh block", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "07b_ajrakh_blocks_pile": ["Well-used blocks, Ajrakhpur", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "07c_printing_workshop_tables": ["Padded printing tables", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "07d_block_carver_generic": ["A carver at work (Anokhi Museum, Jaipur; not ajrakh-specific)", "Journyes, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Master_artist_carves_a_woodblock_for_textile_printing.jpg"],
+  "08a_soaking_cloth": ["Cloth soaking before saaj", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "08b_printing_with_newspaper_mask": ["Block printing, newspaper masking printed areas", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/making-process"],
+  "08c_resist_paste_vats": ["Barrels of resist and gum paste", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Printing_Materials_1.jpg"],
+  "08d_indigo_vat_stirring": ["Stirring the sunk indigo vat", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "08e_madder_boiling": ["Lifting cloth from the boiling dye bath", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "08f_washing_tanks": ["Washing in stepped tanks, Ajrakhpur", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "08i_ajrakh_process_sample_book_VA": ["Stage sampler by Ismail M. Khatri, 2006 (IS.7-2007)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O132500/"],
+  "09a_motif_stars_indigo": ["Stars and almond forms", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_6.jpg"],
+  "09d_motif_star_hexagon": ["Red stars in a white lattice", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "10a_designer_ajrak_jacket_RPS_VA": ["“Ajrak” jacket, Rajesh Pratap Singh, 2010, digitally printed", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O1257168/"],
+  "10b_contemporary_stole_khalid_khatri_VA": ["“Haji Ali” stole, Khalid Amin Khatri, 2014", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O1307267/"],
+  "10d_ajrakh_stole_tassels": ["Stole with tassels", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_5.jpg"],
+  "10e_ajrakh_bolster_home": ["Home textiles: bolster cover", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_1.jpg"],
+  "10f_ajrakh_bedspread": ["Bedspread with a central medallion", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "11a_sufiyan_ismail_khatri": ["Sufiyan Ismail Khatri", "Khamir", "©, educational use", "https://khamir.org/artisans/sufiyan-ismail-khatri-0"],
+  "11b_ismail_khatri": ["Ismail Khatri", "Khamir", "©, educational use", "https://khamir.org/crafts/ajrakh-blockprint"]
+};
+
+(function () {
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // Fill every figure[data-img] with its photo and a linked credit line.
+  document.querySelectorAll('figure[data-img]').forEach(f => {
+    const k = f.dataset.img, m = IMG[k];
+    if (!m) return;
+    const short = f.dataset.short === '1';
+    f.insertAdjacentHTML('afterbegin', `<div class="ph"><img src="../img/${k}.jpg" alt="${esc(m[0])}" loading="lazy" decoding="async"></div>`);
+    f.insertAdjacentHTML('beforeend', `<figcaption title="${esc(m[0])} · ${esc(m[1])} · ${esc(m[2])}">${short ? '' : esc(m[0]) + ' · '}<a href="${m[3]}" target="_blank" rel="noopener">${esc(m[1])}</a></figcaption>`);
+  });
+  const bg = document.querySelector('#s-end img[data-src]');
+  bg.src = `../img/${bg.dataset.src}.jpg`;
+  const bm = IMG[bg.dataset.src];
+  document.querySelector('.credit-end').innerHTML = `Background: ${esc(bm[0])} · <a href="${bm[3]}" target="_blank" rel="noopener">${esc(bm[1])}</a>, ${bm[2]}`;
+  // The title image loads eagerly; it is the first thing anyone sees.
+  document.querySelector('#s-title img').loading = 'eager';
+
+  // Image credits slide, in the order the photos appear.
+  const used = [...new Set([...document.querySelectorAll('[data-img],[data-src]')].map(e => e.dataset.img || e.dataset.src))];
+  const slideOf = k => { const s = document.querySelector(`[data-img="${k}"],[data-src="${k}"]`).closest('.slide'); return [...document.querySelectorAll('.slide')].indexOf(s) + 1; };
+  document.getElementById('creditList').innerHTML = used.map(k => { const m = IMG[k]; return `<p><b>Slide ${slideOf(k)}.</b> ${esc(m[0])}. ${esc(m[1])}, ${esc(m[2])}. <a href="${m[3]}" target="_blank" rel="noopener">Source ↗</a></p>`; }).join('');
+
+  // Row of block-stamps along the bottom of the title slide.
+  const st = document.querySelector('.stamps');
+  for (let i = 0; i < 25; i++) st.insertAdjacentHTML('beforeend', `<svg class="stamp" style="--i:${i}" viewBox="0 0 64 64"><rect width="64" height="64" fill="${i % 2 ? '#A2291C' : '#0E1640'}"/><g transform="translate(32 32)"><g fill="${i % 2 ? '#1C1714' : '#C9432F'}"><rect x="-15" y="-15" width="30" height="30"/><rect x="-15" y="-15" width="30" height="30" transform="rotate(45)"/></g><circle r="6" fill="#F6F0E2"/></g><circle cx="0" cy="32" r="3" fill="#F6F0E2"/><circle cx="64" cy="32" r="3" fill="#F6F0E2"/></svg>`);
+
+  // Price range chart (log scale, rupees).
+  const rows = [
+    ['Cotton fabric, per metre', [300, 1250], [150, 300]],
+    ['Stole / dupatta', [900, 4690], [298, 299]],
+    ['Saree, cotton', [2980, 4250], null],
+    ['Saree, modal silk', [3975, 10950], [996, 1478]],
+    ['Saree, Kota / Gajji silk', [9500, 22000], null],
+    ["Men's shirt", [1250, 7500], [748, 748]],
+    ['Bedsheet', [1040, 4890], [399, 999]]
+  ];
+  const svg = document.getElementById('chart');
+  const X0 = 250, X1 = 930, lo = Math.log10(100), hi = Math.log10(30000);
+  const x = v => X0 + (Math.log10(v) - lo) / (hi - lo) * (X1 - X0);
+  const fmt = v => '₹' + v.toLocaleString('en-IN');
+  let h = '';
+  [100, 300, 1000, 3000, 10000, 30000].forEach(t => {
+    h += `<line x1="${x(t)}" y1="10" x2="${x(t)}" y2="515" stroke="#231A14" stroke-opacity=".14"/><text x="${x(t)}" y="540" text-anchor="middle" font-size="15" font-weight="600" fill="#5B4A3C">${fmt(t)}</text>`;
+  });
+  rows.forEach((r, i) => {
+    const y = 30 + i * 70;
+    h += `<text x="0" y="${y + 20}" font-size="19" font-weight="600" fill="#231A14">${r[0]}</text>`;
+    const g = r[1];
+    h += `<rect x="${x(g[0])}" y="${y}" width="${Math.max(6, x(g[1]) - x(g[0]))}" height="28" fill="#16225C"/>`;
+    h += `<text x="${x(g[1]) + 8}" y="${y + 20}" font-size="15" font-weight="600" fill="#16225C">${fmt(g[0])}–${fmt(g[1])}</text>`;
+    if (r[2]) {
+      const f = r[2];
+      h += `<rect x="${x(f[0])}" y="${y + 34}" width="${Math.max(6, x(f[1]) - x(f[0]))}" height="14" fill="url(#p-hatch)" stroke="#8A7B6B"/>`;
+      h += `<text x="${x(f[0]) - 8}" y="${y + 46}" text-anchor="end" font-size="13.5" font-weight="600" fill="#8A7B6B">${f[0] === f[1] ? fmt(f[0]) : fmt(f[0]) + '–' + fmt(f[1])}</text>`;
+    }
+  });
+  svg.innerHTML = h;
+  const lg = document.querySelector('#s-market .legend span:last-child');
+  lg.innerHTML = '<i style="background:repeating-linear-gradient(45deg,#8A7B6B 0 3px,#E3D7BF 3px 8px);border:1px solid #8A7B6B"></i>Imitation “ajrakh print”';
+
+  // ---- Navigation ----
+  const slides = [...document.querySelectorAll('.slide')];
+  const N = slides.length, pad = n => String(n).padStart(2, '0');
+  slides.forEach((s, i) => { const p = s.querySelector('.pg'); if (p) p.textContent = `${pad(i + 1)} / ${N}`; });
+  const stage = document.getElementById('stage'), count = document.getElementById('count'), bar = document.querySelector('#prog i');
+  let cur = 0;
+  const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function fit() {
+    // In full screen the controls are hidden, so the slide can use the whole height.
+    const ui = isFull() ? 0 : 56, s = Math.min(innerWidth / 1600, (innerHeight - ui) / 900);
+    stage.style.setProperty('--s', s);
+    stage.style.top = Math.max(0, (innerHeight - ui - 900 * s) / 2) + 'px';
+  }
+  function go(i) {
+    i = Math.max(0, Math.min(N - 1, i));
+    slides[cur].classList.remove('active');
+    cur = i;
+    slides[cur].classList.add('active');
+    slides[cur].querySelectorAll('img[loading="lazy"]').forEach(im => im.loading = 'eager');
+    (slides[cur + 1] || slides[cur]).querySelectorAll('img[loading="lazy"]').forEach(im => im.loading = 'eager');
+    count.textContent = `${pad(cur + 1)} / ${N}`;
+    bar.style.width = ((cur + 1) / N * 100) + '%';
+    try { history.replaceState(null, '', '#s' + (cur + 1)); } catch (e) {}
+  }
+  document.getElementById('prev').onclick = () => go(cur - 1);
+  document.getElementById('next').onclick = () => go(cur + 1);
+  document.getElementById('fs').onclick = () => {
+    const d = document;
+    if (d.fullscreenElement) d.exitFullscreen().catch(() => {}); else d.documentElement.requestFullscreen().catch(() => {});
+  };
+  addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input,textarea')) return;
+    const k = e.key;
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); go(cur + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); go(cur - 1); }
+    else if (k === 'Home') go(0);
+    else if (k === 'End') go(N - 1);
+    else if (k === 'f' || k === 'F') document.getElementById('fs').click();
+  });
+  let tx = null;
+  stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1)); tx = null; });
+  addEventListener('resize', fit);
+  const onFull = () => { document.documentElement.classList.toggle('fs', isFull()); fit(); };
+  document.addEventListener('fullscreenchange', onFull);
+  document.addEventListener('webkitfullscreenchange', onFull);
+  fit();
+  const m = /^#s(\d+)$/.exec(location.hash);
+  go(m ? +m[1] - 1 : 0);
+})();
+</script>
+
+</body>
+</html>

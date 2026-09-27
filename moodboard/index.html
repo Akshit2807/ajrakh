@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ajrakh Visual Boards</title>
+<meta name="description" content="Ajrakh, a study of craft, community and continuity by Prisha Palney.">
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Reenie+Beanie&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Noto+Naskh+Arabic:wght@600&family=Noto+Serif+Gujarati:wght@600&display=swap">
+<style>
+  /* One committed look: unbleached linen board, dyed with the five ajrakh colours */
+  :root {
+    --linen: #E4D9C3;
+    --paper: #FBF7EE;
+    --ink: #1F1712;
+    --ink-soft: #5E4D3E;
+    --indigo: #16225C;
+    --madder: #A2291C;
+    --iron: #1C1714;
+    --harda: #C8962B;
+    --resist: #F6F0E2;
+    --display: "Gloock", "Georgia", serif;
+    --hand: "Reenie Beanie", "Bradley Hand", "Segoe Print", cursive;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --body: "Newsreader", "Georgia", serif;
+  }
+  body {
+    margin: 0; color: var(--ink); font: 400 18px/1.5 var(--body);
+    background-color: var(--linen);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .32 0 0 0 0 .24 0 0 0 0 .15 0 0 0 .16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      repeating-linear-gradient(0deg, rgba(90,66,38,.05) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(90,66,38,.04) 0 1px, transparent 1px 4px);
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--madder); outline-offset: 3px; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); padding-block: 12px 60px; }
+
+  /* ---------- Board system: collage laid out in board-width units (cqw) ---------- */
+  .bd { container-type: inline-size; margin-top: clamp(40px, 6vw, 90px); }
+  .board { position: relative; height: calc(var(--h) * 1cqw); }
+  .it { position: absolute; left: calc(var(--x) * 1cqw); top: calc(var(--y) * 1cqw); width: calc(var(--w) * 1cqw); transform: rotate(calc(var(--r, 0) * 1deg)); transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; z-index: var(--z, 1); }
+  figure.it:hover { transform: rotate(0deg) scale(1.035); z-index: 20; }
+
+  .head .eye { font: 500 clamp(11px, .9cqw, 14px)/1.2 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--madder); }
+  .head h2 { font: 400 clamp(44px, 6.4cqw, 104px)/.92 var(--display); margin: .12em 0 0; letter-spacing: -.01em; text-wrap: balance; }
+  .head p { font-size: clamp(16px, 1.3cqw, 21px); line-height: 1.45; margin: .7em 0 0; max-width: 34ch; color: var(--ink-soft); }
+
+  /* Photographs: paper-backed prints with tape or pins, credit underneath */
+  figure { margin: 0; }
+  .ph { background: var(--paper); padding: clamp(6px, .6cqw, 10px) clamp(6px, .6cqw, 10px) clamp(5px, .45cqw, 8px); box-shadow: 0 1px 1px rgba(0,0,0,.08), 0 10px 26px -8px rgba(40,24,10,.45); }
+  .ph img { display: block; width: 100%; height: auto; }
+  .ph figcaption { font: 400 clamp(9.5px, .72cqw, 12px)/1.3 var(--mono); color: var(--ink-soft); margin-top: .45em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ph figcaption a { text-decoration: none; border-bottom: 1px solid rgba(162,41,28,.5); }
+  .tape::before, .tape2::after { content: ""; position: absolute; top: calc(-1 * clamp(9px, 1cqw, 15px)); left: 50%; width: clamp(60px, 7.5cqw, 120px); height: clamp(18px, 1.9cqw, 30px); transform: translateX(-50%) rotate(-4deg); background: repeating-linear-gradient(135deg, rgba(162,41,28,.55) 0 7px, rgba(246,240,226,.6) 7px 11px); box-shadow: 0 1px 2px rgba(0,0,0,.12); opacity: .92; }
+  .tape.ti::before { background: repeating-linear-gradient(135deg, rgba(22,34,92,.55) 0 7px, rgba(246,240,226,.6) 7px 11px); }
+  .tape.th::before { background: repeating-linear-gradient(135deg, rgba(200,150,43,.6) 0 7px, rgba(246,240,226,.6) 7px 11px); }
+  .tape2::after { left: auto; right: -2%; top: auto; bottom: 8%; transform: rotate(58deg); }
+  .pin::before { content: ""; position: absolute; top: calc(-1 * clamp(5px, .5cqw, 8px)); left: 50%; width: clamp(13px, 1.25cqw, 20px); aspect-ratio: 1; margin-left: calc(-.5 * clamp(13px, 1.25cqw, 20px)); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F08A74, #A2291C 45%, #5E140C); box-shadow: 2px 3px 3px rgba(0,0,0,.35); z-index: 2; }
+  .pin.pi::before { background: radial-gradient(circle at 35% 30%, #8FA0F0, #16225C 50%, #080C24); }
+
+  /* Handwritten notes */
+  .note { font: 400 clamp(20px, 2.15cqw, 36px)/.98 var(--hand); color: var(--ink); z-index: 6; }
+  .note.m { color: var(--madder); }
+  .note.i { color: var(--indigo); }
+  .note svg { display: block; width: 70%; height: auto; margin-top: .15em; }
+  .note svg path { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+
+  /* Paper tag with a string */
+  .tag { background: var(--paper); font: 500 clamp(11px, .95cqw, 15px)/1.35 var(--mono); padding: .9em 1.1em .9em 1.8em; clip-path: polygon(12% 0, 100% 0, 100% 100%, 12% 100%, 0 50%); box-shadow: 0 6px 16px -6px rgba(40,24,10,.4); letter-spacing: .04em; }
+  .tag b { display: block; font: 400 clamp(20px, 2cqw, 32px)/1.05 var(--display); letter-spacing: 0; margin-top: .15em; }
+
+  /* ---------- Cover ---------- */
+  .cover .word { font: 400 clamp(92px, 23cqw, 360px)/.8 var(--display); letter-spacing: -.035em; margin: 0; padding: .04em 0 .24em; /* room so the j descender still shows the cloth */ color: var(--madder);
+    background-image: url("../img/04_sindhi_ajrak_red_black.jpg"); background-size: 58% auto; background-position: 30% 40%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 0 rgba(31,23,18,.25)); }
+  .cover .scripts { display: flex; gap: .8em; align-items: baseline; flex-wrap: wrap; font-size: clamp(24px, 2.6cqw, 42px); color: var(--indigo); }
+  .cover .scripts span:first-child { font-family: "Noto Naskh Arabic", serif; }
+  .cover .scripts span:nth-child(2) { font-family: "Noto Serif Gujarati", serif; }
+  .cover .lede { font: italic 400 clamp(18px, 1.75cqw, 28px)/1.35 var(--body); max-width: 26ch; }
+  .seal { color: var(--madder); mix-blend-mode: multiply; opacity: .85; }
+  .seal svg { width: 100%; height: auto; display: block; }
+  .band { height: clamp(22px, 2.6cqw, 40px); display: block; width: 100%; }
+  .index { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; font: 500 13px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .index a { text-decoration: none; background: var(--paper); padding: 9px 12px; box-shadow: 0 3px 8px -4px rgba(40,24,10,.45); }
+  .index a:hover { background: var(--indigo); color: var(--resist); }
+
+  /* ---------- Palette chips ---------- */
+  .chip { background: var(--paper); padding: clamp(6px, .55cqw, 10px); box-shadow: 0 10px 24px -10px rgba(40,24,10,.5); }
+  .chip .sw { height: clamp(150px, 19cqw, 300px); background: var(--c); position: relative; }
+  .chip .sw::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(246,240,226,.14) 1.4px, transparent 2px); background-size: 12px 12px; }
+  .chip .nm { font: 400 clamp(20px, 1.9cqw, 30px)/1 var(--display); margin-top: .45em; }
+  .chip .mt { font: 400 clamp(10px, .82cqw, 13px)/1.35 var(--mono); color: var(--ink-soft); margin-top: .35em; }
+  .chip .mt i { font-style: normal; color: var(--madder); }
+
+  /* ---------- Motif stamps ---------- */
+  .st { background: var(--paper); padding: clamp(8px, .9cqw, 14px); box-shadow: 0 8px 20px -10px rgba(40,24,10,.5); }
+  .st svg { width: 100%; height: auto; aspect-ratio: 1; display: block; color: var(--c, var(--madder)); filter: url(#ink); }
+  .st .nm { font: 400 clamp(22px, 2.1cqw, 34px)/.9 var(--hand); margin-top: .2em; }
+  .st .mn { font: 400 clamp(10px, .8cqw, 12.5px)/1.3 var(--mono); color: var(--ink-soft); }
+
+  /* ---------- Process film strip ---------- */
+  .film { margin-top: 26px; background: #140F0C; overflow-x: auto; scroll-snap-type: x proximity; box-shadow: 0 16px 40px -18px rgba(0,0,0,.7); }
+  .track { display: flex; gap: 20px; padding: 44px 26px; width: max-content; position: relative;
+    background-image: repeating-linear-gradient(90deg, #E4D9C3 0 14px, transparent 14px 34px), repeating-linear-gradient(90deg, #E4D9C3 0 14px, transparent 14px 34px);
+    background-size: 100% 12px, 100% 12px; background-position: 0 14px, 0 calc(100% - 14px); background-repeat: repeat-x; }
+  .frame { width: clamp(220px, 23vw, 330px); flex: none; scroll-snap-align: start; color: var(--resist); }
+  .frame .im { aspect-ratio: 4 / 3; overflow: hidden; background: #2A211B; }
+  .frame img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.05) contrast(1.02); }
+  .frame .no { font: 400 34px/1 var(--display); color: var(--harda); margin-top: 12px; display: flex; gap: 12px; align-items: baseline; }
+  .frame .no b { font: 400 25px/1 var(--display); color: var(--resist); font-weight: 400; }
+  .frame p { font-size: 15.5px; line-height: 1.4; margin: 6px 0 0; color: rgba(246,240,226,.85); }
+  .frame figcaption { font: 400 11px/1.3 var(--mono); color: rgba(246,240,226,.55); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .frame figcaption a { text-decoration: none; border-bottom: 1px solid rgba(246,240,226,.35); }
+  .filmhint { font: 400 26px/1 var(--hand); color: var(--ink-soft); margin-top: 10px; }
+
+  /* ---------- Printing table ---------- */
+  .table { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; margin-top: 26px; align-items: start; }
+  .cloth { position: relative; aspect-ratio: 12 / 7; width: 100%; background-color: var(--g, var(--indigo)); box-shadow: 0 18px 40px -16px rgba(40,24,10,.6); cursor: crosshair; overflow: hidden; touch-action: manipulation; }
+  .cloth.indigoG { --g: #16225C; background-image: radial-gradient(circle, rgba(246,240,226,.12) 1.3px, transparent 1.8px); background-size: calc(100% / 24) calc(100% / 14); }
+  .cloth.cottonG { --g: #F2EBDD; background-image: repeating-linear-gradient(0deg, rgba(90,66,38,.06) 0 1px, transparent 1px 3px); }
+  .cloth .s { position: absolute; width: calc(100% / 12); aspect-ratio: 1; pointer-events: none; animation: press .38s cubic-bezier(.3,1.5,.5,1) both; }
+  .cloth .s svg { width: 100%; height: 100%; display: block; filter: url(#ink); }
+  @keyframes press { from { transform: scale(1.25); opacity: .35; } }
+  .ctrl { display: grid; gap: 18px; }
+  .ctrl h3 { font: 500 12px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--madder); margin: 0 0 8px; }
+  .blocks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .blocks button, .dyes button, .grounds button, .acts button { font: 500 12px/1.1 var(--mono); border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; min-height: 44px; }
+  .blocks button { padding: 6px 4px 5px; display: grid; justify-items: center; gap: 3px; }
+  .blocks button svg { width: 34px; height: 34px; color: var(--madder); }
+  .blocks button span { font-size: 10.5px; letter-spacing: .04em; }
+  .dyes { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dyes button { width: 48px; height: 48px; background: var(--c); border-color: rgba(31,23,18,.45); }
+  .grounds, .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .grounds button, .acts button { padding: 0 14px; letter-spacing: .08em; text-transform: uppercase; }
+  .acts button.primary { background: var(--indigo); color: var(--resist); border-color: var(--indigo); }
+  [aria-pressed="true"] { outline: 3px solid var(--madder); outline-offset: 2px; }
+  .dyes button[aria-pressed="true"] { outline-color: var(--ink); }
+  .tip { font: 400 24px/1 var(--hand); color: var(--ink-soft); }
+
+  /* ---------- Credits ---------- */
+  .credits { columns: 3 300px; column-gap: 34px; margin-top: 22px; font: 400 12.5px/1.45 var(--mono); color: var(--ink-soft); }
+  .credits p { margin: 0 0 8px; break-inside: avoid; }
+  .credits b { color: var(--ink); font-weight: 600; }
+  .credits a { text-decoration: none; border-bottom: 1px solid rgba(162,41,28,.5); }
+  footer { margin-top: 50px; font: 400 30px/1 var(--hand); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer a { text-decoration: none; border-bottom: 2px solid var(--madder); }
+
+  /* ---------- Narrow screens: the collage becomes a pinned stack ---------- */
+  @media (max-width: 760px) {
+    .board { height: auto; display: flex; flex-direction: column; gap: 26px; }
+    .it { position: relative; left: auto; top: auto; width: auto; transform: rotate(calc(var(--r, 0) * .6deg)); }
+    .board > .it:nth-child(odd):not(.head):not(.note) { margin-right: 8%; }
+    .board > .it:nth-child(even):not(.head):not(.note) { margin-left: 8%; }
+    .row-sm { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .row-sm > * { position: relative !important; left: auto !important; top: auto !important; width: auto !important; margin: 0 !important; }
+    .cover .word { background-size: cover; }
+    .seal { width: 150px !important; align-self: flex-end; }
+    .table { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { .it, figure.it:hover { transition: none; } .cloth .s { animation: none; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Slightly uneven edges, like a block pressed by hand -->
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="1" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="1.6"/></filter>
+    <pattern id="p-band" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="#A2291C"/>
+      <rect x="8" y="8" width="14" height="14" fill="#1C1714" transform="rotate(45 15 15)"/>
+      <circle cx="15" cy="15" r="2.6" fill="#F6F0E2"/><circle cx="0" cy="15" r="2" fill="#F6F0E2"/><circle cx="30" cy="15" r="2" fill="#F6F0E2"/>
+    </pattern>
+    <pattern id="p-band2" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="#16225C"/>
+      <g fill="#C9432F"><rect x="8" y="8" width="14" height="14"/><rect x="8" y="8" width="14" height="14" transform="rotate(45 15 15)"/></g>
+      <circle cx="15" cy="15" r="2.6" fill="#F6F0E2"/>
+    </pattern>
+    <symbol id="m-star" viewBox="0 0 100 100"><g fill="currentColor"><rect x="21" y="21" width="58" height="58"/><rect x="21" y="21" width="58" height="58" transform="rotate(45 50 50)"/></g><circle cx="50" cy="50" r="12" fill="#F6F0E2"/><circle cx="50" cy="50" r="5" fill="currentColor"/></symbol>
+    <symbol id="m-kakar" viewBox="0 0 100 100"><g fill="currentColor"><circle cx="50" cy="30" r="20"/><circle cx="30" cy="64" r="20"/><circle cx="70" cy="64" r="20"/></g><g fill="#F6F0E2"><circle cx="50" cy="30" r="6.5"/><circle cx="30" cy="64" r="6.5"/><circle cx="70" cy="64" r="6.5"/><circle cx="50" cy="53" r="4"/></g></symbol>
+    <symbol id="m-badam" viewBox="0 0 100 100"><path d="M50 6 C80 32 80 68 50 94 C20 68 20 32 50 6Z" fill="currentColor"/><path d="M50 24 C66 40 66 60 50 76 C34 60 34 40 50 24Z" fill="#F6F0E2"/><circle cx="50" cy="50" r="8" fill="currentColor"/></symbol>
+    <symbol id="m-riyal" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor"/><circle cx="50" cy="50" r="32" fill="#F6F0E2"/><circle cx="50" cy="50" r="24" fill="currentColor"/><circle cx="50" cy="50" r="9" fill="#F6F0E2"/><g fill="#F6F0E2"><circle cx="88.5" cy="50" r="3.2"/><circle cx="77.2" cy="77.2" r="3.2"/><circle cx="50" cy="88.5" r="3.2"/><circle cx="22.8" cy="77.2" r="3.2"/><circle cx="11.5" cy="50" r="3.2"/><circle cx="22.8" cy="22.8" r="3.2"/><circle cx="50" cy="11.5" r="3.2"/><circle cx="77.2" cy="22.8" r="3.2"/></g></symbol>
+    <symbol id="m-mifudi" viewBox="0 0 100 100"><g fill="currentColor"><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(30 38)"/><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(70 38)"/><path d="M0 -24 C11 -8 14 3 0 14 C-14 3 -11 -8 0 -24Z" transform="translate(50 80)"/></g></symbol>
+    <symbol id="m-koyaro" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><polygon points="86.96,65.3 65.3,86.96 34.7,86.96 13.04,65.3 13.04,34.7 34.7,13.04 65.3,13.04 86.96,34.7"/><polygon points="70.3,58.4 58.4,70.3 41.6,70.3 29.7,58.4 29.7,41.6 41.6,29.7 58.4,29.7 70.3,41.6"/><path d="M86.96 65.3 13.04 34.7M65.3 86.96 34.7 13.04M34.7 86.96 65.3 13.04M13.04 65.3 86.96 34.7"/></g><circle cx="50" cy="50" r="7" fill="currentColor"/></symbol>
+    <symbol id="m-mohar" viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" fill="currentColor"/><rect x="27" y="27" width="46" height="46" fill="#F6F0E2" transform="rotate(45 50 50)"/><rect x="39" y="39" width="22" height="22" fill="currentColor" transform="rotate(45 50 50)"/><g fill="#F6F0E2"><circle cx="22" cy="22" r="4"/><circle cx="78" cy="22" r="4"/><circle cx="22" cy="78" r="4"/><circle cx="78" cy="78" r="4"/></g></symbol>
+    <symbol id="m-jalebi" viewBox="0 0 100 100"><path d="M50 50 a5 5 0 0 1 10 0 a10 10 0 0 1 -20 0 a15 15 0 0 1 30 0 a20 20 0 0 1 -40 0 a25 25 0 0 1 50 0" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" transform="translate(-4 2)"/></symbol>
+    <symbol id="m-champa" viewBox="0 0 100 100"><path d="M50 6 C66 28 66 56 50 72 C34 56 34 28 50 6Z" fill="currentColor"/><path d="M50 22 L50 58" stroke="#F6F0E2" stroke-width="4" stroke-linecap="round"/><path d="M50 72 C40 66 26 70 18 84 C32 88 44 84 50 72Z M50 72 C60 66 74 70 82 84 C68 88 56 84 50 72Z" fill="currentColor"/><path d="M50 72 L50 96" stroke="currentColor" stroke-width="5"/></symbol>
+    <symbol id="m-kharek" viewBox="0 0 100 100"><path d="M50 30 L50 10 M50 18 L36 8 M50 18 L64 8" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/><g fill="currentColor"><ellipse cx="31" cy="62" rx="13" ry="22"/><ellipse cx="50" cy="54" rx="13" ry="22"/><ellipse cx="69" cy="62" rx="13" ry="22"/></g><g fill="#F6F0E2"><ellipse cx="27" cy="56" rx="3" ry="8"/><ellipse cx="46" cy="48" rx="3" ry="8"/><ellipse cx="65" cy="56" rx="3" ry="8"/></g></symbol>
+    <symbol id="m-mor" viewBox="0 0 100 100"><ellipse cx="50" cy="40" rx="27" ry="34" fill="currentColor"/><ellipse cx="50" cy="42" rx="17" ry="22" fill="#F6F0E2"/><ellipse cx="50" cy="44" rx="9" ry="12" fill="currentColor"/><path d="M50 74 L50 97" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+<!-- ============ COVER ============ -->
+<section class="bd cover" id="cover" style="margin-top:22px">
+  <div class="board" style="--h:66">
+    <div class="it head" style="--x:0;--y:1;--w:60;--z:3">
+      <span class="eye">Visual boards · a companion to the Ajrakh deck</span>
+    </div>
+    <h1 class="it word" style="--x:-1;--y:3.5;--w:100;--z:2" aria-label="Ajrakh">Ajrakh</h1>
+    <div class="it scripts" style="--x:1;--y:27.5;--w:50;--z:3"><span lang="sd">اجرڪ</span><span lang="gu">અજરખ</span><span style="font:400 clamp(11px,.9cqw,14px)/1 var(--mono);letter-spacing:.14em;color:var(--ink-soft);text-transform:uppercase">Sindhi · Gujarati</span></div>
+    <p class="it lede" style="--x:1;--y:34;--w:32">Colour from roots and rust, pattern from wooden blocks, and a sky printed on cotton, twice.</p>
+    <div class="it tag" style="--x:1;--y:49;--w:22;--r:-2;--z:4">PRESENTED BY<b>Prisha Palney</b></div>
+    <figure class="it ph tape" data-img="01_hero_block_printing_hands" style="--x:38;--y:31;--w:29;--r:2.5;--z:5"></figure>
+    <figure class="it ph pin" data-img="01b_hero_ajrakh_cloth_spread" style="--x:70;--y:27;--w:27;--r:-3;--z:4"></figure>
+    <div class="it seal" style="--x:25;--y:37;--w:12;--r:-14;--z:7" aria-hidden="true">
+      <svg viewBox="0 0 200 200"><defs><path id="ring" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"/></defs>
+        <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="100" cy="100" r="54" fill="none" stroke="currentColor" stroke-width="3"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="17" font-weight="600" letter-spacing="4" fill="currentColor"><textPath href="#ring">SINDH · KUTCH · BARMER · KHATRI ·</textPath></text>
+        <use href="#m-star" x="66" y="66" width="68" height="68" style="color:currentColor"/></svg>
+    </div>
+    <p class="it note m" style="--x:40;--y:55;--w:24;--r:-3">hands, teak, lime &amp; gum: sixteen stages start here<svg viewBox="0 0 200 40" aria-hidden="true"><path d="M5 30 C60 5, 120 5, 190 20 M178 10 L192 20 L176 28"/></svg></p>
+  </div>
+  <svg class="band" aria-hidden="true"><rect width="100%" height="100%" fill="url(#p-band)"/></svg>
+  <nav class="index" aria-label="Boards">
+    <a href="#cloth">01 Cloth</a><a href="#palette">02 Palette</a><a href="#motifs">03 Motifs</a><a href="#process">04 Process</a><a href="#people">05 People &amp; place</a><a href="#now">06 Now</a><a href="#print">07 Print one</a><a href="#credits">Credits</a>
+  </nav>
+</section>
+
+<!-- ============ 01 CLOTH ============ -->
+<section class="bd" id="cloth">
+  <div class="board" style="--h:74">
+    <div class="it head" style="--x:0;--y:0;--w:40">
+      <span class="eye">Board 01 · Cloth</span><h2>Four colours, one sky</h2>
+      <p>Sindhi, Kutchi and Saraiki cloths side by side. Every surface is a grid of repeating stars.</p>
+    </div>
+    <figure class="it ph tape" data-img="04_sindhi_ajrak_red_black" style="--x:43;--y:3;--w:54;--r:1.5;--z:3"></figure>
+    <figure class="it ph pin pi" data-img="04b_sindhi_ajrak_thatta_1882_VA" style="--x:2;--y:27;--w:34;--r:-2;--z:2"></figure>
+    <figure class="it ph tape ti" data-img="04c_kutchi_ajrakh_shawl_VA" style="--x:39;--y:31;--w:18;--r:3;--z:4"></figure>
+    <figure class="it ph pin" data-img="10c_ajrakh_hanging_spider_VA" style="--x:60;--y:32;--w:26;--r:-2.5;--z:3"></figure>
+    <figure class="it ph tape th" data-img="04d_saraiki_ajrak_blue" style="--x:8;--y:54;--w:22;--r:2;--z:3"></figure>
+    <figure class="it ph" data-img="12_market_stack_of_ajrakh" style="--x:76;--y:53;--w:21;--r:4;--z:4"></figure>
+    <p class="it note" style="--x:62;--y:27;--w:30;--r:-1">Sindh: only red, blue, black, white</p>
+    <p class="it note i" style="--x:38;--y:58;--w:20;--r:-4">Kutch: red ends, blue long sides</p>
+    <p class="it note m" style="--x:60;--y:54.5;--w:15;--r:3">Ismail Khatri printed the 2001 earthquake as a “Spider”</p>
+    <p class="it note i" style="--x:31;--y:68;--w:24;--r:2">Saraiki: blue &amp; cyan</p>
+  </div>
+</section>
+
+<!-- ============ 02 PALETTE ============ -->
+<section class="bd" id="palette">
+  <div class="board" style="--h:64">
+    <div class="it head" style="--x:0;--y:0;--w:44">
+      <span class="eye">Board 02 · Palette</span><h2>Dyed from earth</h2>
+      <p>Each colour has a name, a material and a place in the sky, as Khatri families told researchers in 2008.</p>
+    </div>
+    <div class="row-sm it" style="--x:0;--y:19;--w:64;display:contents">
+      <div class="it chip" style="--x:0;--y:19;--w:12;--r:-2;--c:#16225C"><div class="sw"></div><div class="nm">Neela</div><div class="mt">#16225C · indigo<br><i>the sky</i></div></div>
+      <div class="it chip" style="--x:13;--y:21;--w:12;--r:1.5;--c:#A2291C"><div class="sw"></div><div class="nm">Laal</div><div class="mt">#A2291C · madder<br><i>sunset light</i></div></div>
+      <div class="it chip" style="--x:26;--y:19.5;--w:12;--r:-1;--c:#1C1714"><div class="sw"></div><div class="nm">Kalo</div><div class="mt">#1C1714 · iron<br><i>dark night</i></div></div>
+      <div class="it chip" style="--x:39;--y:21.5;--w:12;--r:2;--c:#F6F0E2"><div class="sw" style="box-shadow:inset 0 0 0 1px rgba(31,23,18,.15)"></div><div class="nm">Safed</div><div class="mt">#F6F0E2 · lime resist<br><i>the stars</i></div></div>
+      <div class="it chip" style="--x:52;--y:19;--w:12;--r:-2.5;--c:#C8962B"><div class="sw"></div><div class="nm">Harda</div><div class="mt">#C8962B · myrobalan<br><i>the first bath</i></div></div>
+    </div>
+    <figure class="it ph tape" data-img="06_natural_dye_materials" style="--x:70;--y:2;--w:23;--r:3;--z:3"></figure>
+    <figure class="it ph pin pi" data-img="06b_indigo_powder" style="--x:1;--y:50;--w:14;--r:-3"></figure>
+    <figure class="it ph pin" data-img="06c_madder_root" style="--x:17;--y:51.5;--w:14;--r:2"></figure>
+    <figure class="it ph pin" data-img="06e_scrap_iron_for_black" style="--x:33;--y:50;--w:14;--r:-1.5"></figure>
+    <figure class="it ph pin" data-img="06d_harda_myrobalan" style="--x:49;--y:51;--w:14;--r:3"></figure>
+    <p class="it note" style="--x:67;--y:36;--w:30;--r:-2">scrap iron + jaggery, left to ferment for weeks = <span style="color:var(--madder)">kat</span>, the black<svg viewBox="0 0 200 40" aria-hidden="true"><path d="M190 8 C140 36, 60 38, 10 22 M22 14 L8 22 L22 32"/></svg></p>
+    <p class="it note m" style="--x:69;--y:49;--w:26;--r:2">harda turns the cloth yellow before anything is printed</p>
+  </div>
+</section>
+
+<!-- ============ 03 MOTIFS ============ -->
+<section class="bd" id="motifs">
+  <div class="board" style="--h:66">
+    <div class="it head" style="--x:0;--y:0;--w:44">
+      <span class="eye">Board 03 · Motifs</span><h2>A vocabulary of the desert</h2>
+      <p>No faces or animals, only dates, almonds, clouds, coins and stars. The glyphs are sketches drawn for this board.</p>
+    </div>
+    <div class="row-sm it" style="display:contents">
+      <div class="it st" style="--x:1;--y:24;--w:10;--r:-3"><svg aria-hidden="true"><use href="#m-kakar"/></svg><div class="nm">kakar</div><div class="mn">cloud · trefoil</div></div>
+      <div class="it st" style="--x:12;--y:25.5;--w:10;--r:2;--c:#16225C"><svg aria-hidden="true"><use href="#m-kharek"/></svg><div class="nm">kharek</div><div class="mn">dates</div></div>
+      <div class="it st" style="--x:23;--y:24;--w:10;--r:-1;--c:#1C1714"><svg aria-hidden="true"><use href="#m-badam"/></svg><div class="nm">badam</div><div class="mn">almond</div></div>
+      <div class="it st" style="--x:34;--y:25.5;--w:10;--r:3"><svg aria-hidden="true"><use href="#m-riyal"/></svg><div class="nm">riyal</div><div class="mn">coin</div></div>
+      <div class="it st" style="--x:45;--y:24;--w:10;--r:-2;--c:#16225C"><svg aria-hidden="true"><use href="#m-mifudi"/></svg><div class="nm">mifudi</div><div class="mn">raindrops</div></div>
+      <div class="it st" style="--x:6;--y:44;--w:10;--r:2;--c:#16225C"><svg aria-hidden="true"><use href="#m-koyaro"/></svg><div class="nm">koyaro</div><div class="mn">spider web</div></div>
+      <div class="it st" style="--x:17;--y:45.5;--w:10;--r:-3"><svg aria-hidden="true"><use href="#m-mohar"/></svg><div class="nm">mohar</div><div class="mn">seal</div></div>
+      <div class="it st" style="--x:28;--y:44;--w:10;--r:1;--c:#1C1714"><svg aria-hidden="true"><use href="#m-jalebi"/></svg><div class="nm">jalebi</div><div class="mn">the sweet</div></div>
+      <div class="it st" style="--x:39;--y:45.5;--w:10;--r:-2"><svg aria-hidden="true"><use href="#m-champa"/></svg><div class="nm">champakali</div><div class="mn">flower bud</div></div>
+      <div class="it st" style="--x:50;--y:44;--w:10;--r:3;--c:#16225C"><svg aria-hidden="true"><use href="#m-mor"/></svg><div class="nm">mor</div><div class="mn">peacock</div></div>
+    </div>
+    <figure class="it ph tape" data-img="09a_motif_stars_indigo" style="--x:63;--y:2;--w:34;--r:2;--z:2"></figure>
+    <figure class="it ph pin" data-img="09d_motif_star_hexagon" style="--x:62;--y:30;--w:20;--r:-4;--z:3"></figure>
+    <figure class="it ph tape ti" data-img="09b_motif_red_blue_lattice" style="--x:84;--y:30;--w:13;--r:4;--z:4"></figure>
+    <p class="it note i" style="--x:63;--y:48;--w:20;--r:-2">“no centre, no periphery, and it keeps on expanding”<br><span style="font-size:.7em">Lotika Varadarajan</span></p>
+    <p class="it note m" style="--x:1;--y:62;--w:44;--r:-1">most printed in Kutch: kharek, riyal, ginni, mifudi, tavith</p>
+  </div>
+</section>
+
+<!-- ============ 04 PROCESS ============ -->
+<section class="bd" id="process">
+  <div class="head" style="max-width:720px">
+    <span class="eye">Board 04 · Process</span><h2 style="font-size:clamp(44px,6.4vw,104px)">Two to three weeks of washing, printing and waiting</h2>
+  </div>
+  <div class="film" tabindex="0" aria-label="Process film strip, scroll sideways">
+    <div class="track">
+      <figure class="frame" data-film="08a_soaking_cloth"><div class="no">01<b>Saaj</b></div><p>Soaked in camel dung, soda ash and castor oil until the cloth foams.</p></figure>
+      <figure class="frame" data-film="06d_harda_myrobalan"><div class="no">02<b>Kasanu</b></div><p>A cold myrobalan bath turns it yellow, the first mordant.</p></figure>
+      <figure class="frame" data-film="08b_printing_with_newspaper_mask"><div class="no">03<b>Khariyanu</b></div><p>Lime and gum resist, printed on both sides, outlines the whites.</p></figure>
+      <figure class="frame" data-film="08c_resist_paste_vats"><div class="no">04–06<b>Kat · Kan · Gach</b></div><p>Iron black, alum for the reds, then clay resist dusted with sawdust.</p></figure>
+      <figure class="frame" data-film="08d_indigo_vat_stirring"><div class="no">07<b>Bodaw</b></div><p>Dipped in the sunk indigo vat. Green first, blue in the air.</p></figure>
+      <figure class="frame" data-film="08f_washing_tanks"><div class="no">08<b>Vichharnu</b></div><p>Washed in the stepped tanks of Ajrakhpur.</p></figure>
+      <figure class="frame" data-film="08g_beating_cloth_in_tank"><div class="no">08<b>…and beaten</b></div><p>Loose dye and paste are knocked out against the tank edge.</p></figure>
+      <figure class="frame" data-film="08e_madder_boiling"><div class="no">09<b>Rang</b></div><p>Boiled with madder or alizarin: reds rise, blacks deepen, stars turn white.</p></figure>
+      <figure class="frame" data-film="08h_sun_drying_indigo_cloths"><div class="no">10–11<b>Minakari · sun</b></div><p>Repeated for depth, then laid on open ground to dry.</p></figure>
+      <figure class="frame" data-film="08i_ajrakh_process_sample_book_VA"><div class="no">∞<b>The sampler</b></div><p>Dr Ismail Khatri's stage-by-stage book, now at the V&amp;A.</p></figure>
+    </div>
+  </div>
+  <p class="filmhint">scroll the strip sideways →</p>
+</section>
+
+<!-- ============ 05 PEOPLE & PLACE ============ -->
+<section class="bd" id="people">
+  <div class="board" style="--h:80">
+    <div class="it head" style="--x:0;--y:0;--w:31">
+      <span class="eye">Board 05 · People &amp; place</span><h2>Salt flats, a river, a family</h2>
+    </div>
+    <figure class="it ph tape" data-img="03_great_rann_of_kutch" style="--x:1;--y:24;--w:28;--r:-2;--z:2"></figure>
+    <figure class="it ph pin" data-img="02_priest_king_trefoil_shawl" style="--x:32;--y:6;--w:15;--r:3;--z:3"></figure>
+    <figure class="it ph tape ti" data-img="05d_kutch_elder_ajrakh_turban" style="--x:50;--y:4;--w:23;--r:-2.5;--z:2"></figure>
+    <figure class="it ph pin pi" data-img="05e_kutch_man_ajrakh_shoulder_cloth" style="--x:75;--y:8;--w:22;--r:3;--z:3"></figure>
+    <figure class="it ph tape th" data-img="05c_sindhi_culture_day" style="--x:33;--y:33;--w:30;--r:-1.5;--z:3"></figure>
+    <figure class="it ph pin" data-img="05_sindhi_ajrak_honour_gift" style="--x:66;--y:34;--w:28;--r:2;--z:2"></figure>
+    <figure class="it ph tape" data-img="11b_ismail_khatri" style="--x:2;--y:56;--w:13;--r:-4;--z:3"></figure>
+    <figure class="it ph tape ti" data-img="11a_sufiyan_ismail_khatri" style="--x:17;--y:58;--w:13;--r:3;--z:3"></figure>
+    <figure class="it ph pin" data-img="07_carved_wooden_block" style="--x:70;--y:54;--w:20;--r:-3;--z:4"></figure>
+    <p class="it note m" style="--x:49;--y:22;--w:24;--r:-2">Mohenjo-daro, c. 2000–1900 BCE: printers call the trefoil “kakkar”</p>
+    <p class="it note" style="--x:2;--y:50;--w:28;--r:1">the Rann of Kutch: herders, salt and sky</p>
+    <p class="it note i" style="--x:2;--y:73;--w:32;--r:-1">Dr Ismail &amp; Sufiyan Khatri, Ajrakhpur: ninth to eleventh generation, depending on who counts</p>
+    <p class="it note m" style="--x:35;--y:57;--w:30;--r:2">Sindhi Culture Day, first Sunday of December: everyone in ajrak &amp; topi</p>
+  </div>
+</section>
+
+<!-- ============ 06 NOW ============ -->
+<section class="bd" id="now">
+  <div class="board" style="--h:62">
+    <div class="it head" style="--x:0;--y:0;--w:40">
+      <span class="eye">Board 06 · Now</span><h2>Caste dress to catwalk</h2>
+    </div>
+    <figure class="it ph tape" data-img="10a_designer_ajrak_jacket_RPS_VA" style="--x:2;--y:17;--w:18;--r:-2;--z:3"></figure>
+    <figure class="it ph pin pi" data-img="10b_contemporary_stole_khalid_khatri_VA" style="--x:23;--y:19;--w:11;--r:3;--z:2"></figure>
+    <figure class="it ph tape th" data-img="10d_ajrakh_stole_tassels" style="--x:37;--y:21;--w:14;--r:-3;--z:3"></figure>
+    <figure class="it ph pin" data-img="10e_ajrakh_bolster_home" style="--x:54;--y:17;--w:13;--r:4;--z:2"></figure>
+    <figure class="it ph tape" data-img="10f_ajrakh_bedspread" style="--x:70;--y:4;--w:27;--r:-2;--z:3"></figure>
+    <figure class="it ph tape ti" data-img="11c_khamir_ajrakh_indigo" style="--x:60;--y:39;--w:37;--r:1.5;--z:3"></figure>
+    <div class="it tag" style="--x:23;--y:49;--w:34;--r:-1.5;--z:4">NOW PRINTED ON<b>sarees · dupattas · jackets · shirts · bags · bedcovers · rugs</b></div>
+    <p class="it note m" style="--x:2;--y:46;--w:20;--r:2">Lakmé Fashion Week × FDCI, 2025: Khatri artisan-designers on the runway</p>
+    <p class="it note i" style="--x:37;--y:42;--w:22;--r:-2">“Ajrakh: The Blue Gold”, Delhi, May 2026</p>
+  </div>
+</section>
+
+<!-- ============ 07 PRINT ONE ============ -->
+<section class="bd" id="print">
+  <div class="head" style="max-width:760px">
+    <span class="eye">Board 07 · Print one</span><h2 style="font-size:clamp(44px,6.4vw,104px)">Your turn at the table</h2>
+    <p style="max-width:52ch">Pick a block and a dye, then press it onto the cloth. Real blocks must line up on all four sides; here the grid keeps your register for you.</p>
+  </div>
+  <div class="table">
+    <div class="cloth indigoG" id="printcloth" role="img" aria-label="Printing cloth. Click a square to press the selected block."></div>
+    <div class="ctrl">
+      <div><h3>Block</h3><div class="blocks" id="blocks"></div></div>
+      <div><h3>Dye</h3><div class="dyes" id="dyes"></div></div>
+      <div><h3>Cloth</h3><div class="grounds"><button id="gInd" aria-pressed="true">Indigo</button><button id="gCot" aria-pressed="false">Cotton</button></div></div>
+      <div class="acts"><button class="primary" id="fill">Print a full jaal</button><button id="wash">Wash the cloth</button></div>
+      <p class="tip">press the same square again to layer colours, the way a cloth is printed again and again</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CREDITS ============ -->
+<section class="bd" id="credits">
+  <div class="head"><span class="eye">Where every image comes from</span><h2 style="font-size:clamp(40px,5vw,72px)">Image credits</h2></div>
+  <div class="credits" id="creditList"></div>
+  <p style="font: 400 13px/1.5 var(--mono); color: var(--ink-soft); margin-top: 14px; max-width: 90ch">Wikimedia Commons images are reused under their stated licences. V&amp;A, D'Source (IIT Bombay), Gaatha and Khamir images are © their owners and used here for non-commercial educational reference. Facts on the notes come from the sources listed in the deck.</p>
+  <footer><span>visual boards by Prisha Palney</span><a href="../linen/">open the full Ajrakh deck →</a></footer>
+</section>
+
+</div>
+
+<script>
+const IMG = {
+  "01_hero_block_printing_hands": ["Printing with a carved block, Ajrakhpur", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "01b_hero_ajrakh_cloth_spread": ["Artisans hold up a full ajrakh", "Visdaviva, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Craft.jpeg"],
+  "02_priest_king_trefoil_shawl": ["“Priest-King” (cast), trefoil cloak", "Umair Shaikh, Wikimedia Commons", "CC BY 2.5", "https://commons.wikimedia.org/wiki/File:King_Priest,_Pakistan.jpg"],
+  "03_great_rann_of_kutch": ["Great Rann of Kutch", "Jyoti Chaurasia, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Great_Rann_of_Kutch.jpg"],
+  "04_sindhi_ajrak_red_black": ["Sindhi ajrak (also fills the title letters)", "Ahub1988, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak.jpg"],
+  "04b_sindhi_ajrak_thatta_1882_VA": ["Ajrakh from Thatta, Sindh, c.1882 (IS.216-1883)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O455479/"],
+  "04c_kutchi_ajrakh_shawl_VA": ["Ajrakh shawl, Ismail M. Khatri, 2006 (IS.5-2007)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O132496/"],
+  "04d_saraiki_ajrak_blue": ["Saraiki ajrak", "Saraik Ningar, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Saraike_Ajrak.jpg"],
+  "05_sindhi_ajrak_honour_gift": ["Honouring a guest with ajrak, Sindh", "DrShoukatrind, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Sindhi_ajrak.jpg"],
+  "05c_sindhi_culture_day": ["Sindhi Cultural Day 2019, Sindh Museum, Hyderabad", "JogiAsad, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Sindhi_Cultural_Day_2019_celebrations_at_Sindh_museum_Hyderabad,_Sindh.jpg"],
+  "05d_kutch_elder_ajrakh_turban": ["Kutchi elder in ajrakh turban", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "05e_kutch_man_ajrakh_shoulder_cloth": ["Ajrakh around head and shoulders, Kutch", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "06_natural_dye_materials": ["Natural dye and mordant materials", "Visdaviva, Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Craft_Natural_dye_products.jpeg"],
+  "06b_indigo_powder": ["Indigo", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "06c_madder_root": ["Madder", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "06d_harda_myrobalan": ["Dried fruit, likely harda (myrobalan)", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "06e_scrap_iron_for_black": ["Scrap iron for the black", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "07_carved_wooden_block": ["Carved wooden ajrakh block", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "08a_soaking_cloth": ["Cloth soaking before saaj", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/tools-and-raw-materials"],
+  "08b_printing_with_newspaper_mask": ["Block printing with a newspaper mask", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/making-process"],
+  "08c_resist_paste_vats": ["Barrels of resist and gum paste", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Printing_Materials_1.jpg"],
+  "08d_indigo_vat_stirring": ["Stirring the sunk indigo vat", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "08e_madder_boiling": ["Lifting cloth from the boiling dye bath", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "08f_washing_tanks": ["Washing in stepped tanks, Ajrakhpur", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "08g_beating_cloth_in_tank": ["Beating cloth clean at the tank", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/making-process"],
+  "08h_sun_drying_indigo_cloths": ["Indigo-dyed cloths drying in the sun", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "08i_ajrakh_process_sample_book_VA": ["Stage sampler by Ismail M. Khatri, 2006 (IS.7-2007)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O132500/"],
+  "09a_motif_stars_indigo": ["Stars and almond forms", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_6.jpg"],
+  "09b_motif_red_blue_lattice": ["Red lattice on indigo", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_8.jpg"],
+  "09d_motif_star_hexagon": ["Red stars in a white lattice", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"],
+  "10a_designer_ajrak_jacket_RPS_VA": ["“Ajrak” jacket, Rajesh Pratap Singh, 2010, digitally printed", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O1257168/"],
+  "10b_contemporary_stole_khalid_khatri_VA": ["“Haji Ali” stole, Khalid Amin Khatri, 2014", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O1307267/"],
+  "10c_ajrakh_hanging_spider_VA": ["“Spider”, the 2001 earthquake, Ismail M. Khatri (IS.9-2007)", "Victoria and Albert Museum", "© V&A", "https://collections.vam.ac.uk/item/O132566/"],
+  "10d_ajrakh_stole_tassels": ["Stole with tassels", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_5.jpg"],
+  "10e_ajrakh_bolster_home": ["Bolster cover", "SMarndi, Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Ajrak_Print_1.jpg"],
+  "10f_ajrakh_bedspread": ["Bedspread with a central medallion", "D'Source, IIT Bombay", "©, educational use", "https://www.dsource.in/resource/ajrakh-printing-ajrakhpur-gujarat/introduction"],
+  "11a_sufiyan_ismail_khatri": ["Sufiyan Ismail Khatri", "Khamir", "©, educational use", "https://khamir.org/artisans/sufiyan-ismail-khatri-0"],
+  "11b_ismail_khatri": ["Ismail Khatri", "Khamir", "©, educational use", "https://khamir.org/crafts/ajrakh-blockprint"],
+  "11c_khamir_ajrakh_indigo": ["Khamir's ajrakh banner", "Khamir", "©, educational use", "https://khamir.org/crafts/ajrakh-blockprint"],
+  "12_market_stack_of_ajrakh": ["Folded ajrakh in many colourways", "Team Gaatha", "©, educational use", "https://gaatha.org/Craft-of-India/ajrak-gujarat-history-process/"]
+};
+
+(function () {
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const link = m => `<a href="${m[3]}" target="_blank" rel="noopener">${esc(m[1])} ↗</a>`;
+
+  // Pinned photographs
+  document.querySelectorAll('figure[data-img]').forEach(f => {
+    const k = f.dataset.img, m = IMG[k]; if (!m) return;
+    f.innerHTML = `<img src="../img/${k}.jpg" alt="${esc(m[0])}" loading="lazy" decoding="async"><figcaption title="${esc(m[0])} · ${esc(m[1])} · ${esc(m[2])}">${link(m)}</figcaption>`;
+  });
+  document.querySelectorAll('#cover img').forEach(i => i.loading = 'eager');
+  // Film strip frames
+  document.querySelectorAll('figure[data-film]').forEach(f => {
+    const k = f.dataset.film, m = IMG[k]; if (!m) return;
+    f.insertAdjacentHTML('afterbegin', `<div class="im"><img src="../img/${k}.jpg" alt="${esc(m[0])}" loading="lazy" decoding="async"></div>`);
+    f.insertAdjacentHTML('beforeend', `<figcaption>${link(m)}</figcaption>`);
+  });
+  // Credits, in the order images appear (the title letters use the Sindhi ajrak photo)
+  const used = [...new Set(['04_sindhi_ajrak_red_black', ...[...document.querySelectorAll('[data-img],[data-film]')].map(e => e.dataset.img || e.dataset.film)])];
+  document.getElementById('creditList').innerHTML = used.map(k => { const m = IMG[k]; return `<p><b>${esc(m[0])}.</b> ${esc(m[1])}, ${esc(m[2])}. <a href="${m[3]}" target="_blank" rel="noopener">Source ↗</a></p>`; }).join('');
+
+  // ---- Printing table ----
+  const BLOCKS = [['star', 'Star'], ['kakar', 'Kakar'], ['badam', 'Badam'], ['riyal', 'Riyal'], ['mohar', 'Mohar'], ['koyaro', 'Koyaro'], ['mifudi', 'Mifudi'], ['kharek', 'Kharek']];
+  const DYES = [['#A2291C', 'Madder red'], ['#16225C', 'Indigo'], ['#1C1714', 'Iron black'], ['#F6F0E2', 'Lime white'], ['#C8962B', 'Harda yellow']];
+  const COLS = 12, ROWS = 7;
+  let block = 'star', dye = '#A2291C';
+  const cloth = document.getElementById('printcloth');
+  const bWrap = document.getElementById('blocks'), dWrap = document.getElementById('dyes');
+  BLOCKS.forEach(([id, name]) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<svg aria-hidden="true"><use href="#m-${id}"/></svg><span>${name}</span>`;
+    b.setAttribute('aria-pressed', id === block); b.setAttribute('aria-label', `${name} block`);
+    b.onclick = () => { block = id; [...bWrap.children].forEach(x => x.setAttribute('aria-pressed', x === b)); };
+    bWrap.appendChild(b);
+  });
+  DYES.forEach(([c, name]) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--c', c); b.setAttribute('aria-label', name); b.title = name;
+    b.setAttribute('aria-pressed', c === dye);
+    b.onclick = () => { dye = c; [...dWrap.children].forEach(x => x.setAttribute('aria-pressed', x === b)); };
+    dWrap.appendChild(b);
+  });
+  function press(col, row, id, color, rot) {
+    const s = document.createElement('div');
+    s.className = 's';
+    s.style.left = (col / COLS * 100) + '%';
+    s.style.top = (row / ROWS * 100) + '%';
+    s.style.color = color;
+    s.style.transform = `rotate(${rot || 0}deg)`;
+    s.innerHTML = `<svg aria-hidden="true"><use href="#m-${id}"/></svg>`;
+    cloth.appendChild(s);
+  }
+  cloth.addEventListener('click', e => {
+    const r = cloth.getBoundingClientRect();
+    const col = Math.min(COLS - 1, Math.floor((e.clientX - r.left) / r.width * COLS));
+    const row = Math.min(ROWS - 1, Math.floor((e.clientY - r.top) / r.height * ROWS));
+    press(col, row, block, dye);
+  });
+  function jaal() {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (r === 0 || r === ROWS - 1) press(c, r, 'mohar', '#A2291C');
+      else if ((r + c) % 2 === 0) press(c, r, 'star', '#A2291C');
+      else press(c, r, 'kakar', '#F6F0E2');
+    }
+  }
+  const setGround = ind => {
+    cloth.classList.toggle('indigoG', ind); cloth.classList.toggle('cottonG', !ind);
+    document.getElementById('gInd').setAttribute('aria-pressed', ind);
+    document.getElementById('gCot').setAttribute('aria-pressed', !ind);
+  };
+  document.getElementById('gInd').onclick = () => setGround(true);
+  document.getElementById('gCot').onclick = () => setGround(false);
+  document.getElementById('fill').onclick = jaal;
+  document.getElementById('wash').onclick = () => { cloth.querySelectorAll('.s').forEach(s => s.remove()); };
+  // Start with a half-printed cloth so the table shows what it does.
+  for (let c = 0; c < COLS; c++) { press(c, 0, 'mohar', '#A2291C'); press(c, ROWS - 1, 'mohar', '#A2291C'); }
+  [[1,2],[3,2],[5,2],[2,3],[4,3],[1,4],[3,4],[5,4],[2,5],[4,5]].forEach(([c, r]) => press(c, r, 'star', '#A2291C'));
+  [[2,2],[4,2],[1,3],[3,3],[5,3],[2,4],[4,4]].forEach(([c, r]) => press(c, r, 'kakar', '#F6F0E2'));
+  // Deep links such as #print open at that board.
+  const target = location.hash && document.getElementById(location.hash.slice(1));
+  if (target) addEventListener('load', () => target.scrollIntoView());
+})();
+</script>
+
+</body>
+</html>

@@ -1,6 +1,9 @@
 # Ajrakh
 
-A study of ajrakh, the resist-dyed, block-printed cloth of Sindh, Kutch and Barmer, presented by Prisha Palney.
+A study of ajrakh, the resist-dyed, block-printed cloth of Sindh, Kutch and Barmer.
+
+- **Created by** Akshit Pahade
+- **Presented by** Prisha Palney
 
 Live site: https://akshit2807.github.io/ajrakh/
 
